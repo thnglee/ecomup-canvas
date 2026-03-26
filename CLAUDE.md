@@ -40,9 +40,9 @@ Single-user infinite canvas web app for a Performance Marketing Specialist manag
 - **Phase 5 (Sprint 7):** Deploy & Data — Production deploy, data population, testing
 
 ## Current Status
-- **Phase:** Phase 4 complete (Sprint 6: Polish & Optimization)
-- **Completed:** All Phase 1-3 features + undo/redo system (50-action history, batched drag ops), full keyboard shortcuts (Ctrl+Z/Shift+Z, Delete, Ctrl+D, Ctrl+A, Ctrl+0, Ctrl+1, +/-, Escape, Space pan), minimap (bottom-right, click-to-jump, drag-to-pan, collapsible), viewport culling (200px buffer, AABB test, 50+ component threshold), performance optimization (React.memo on NodeWrapper/ComponentRenderer, useMemo for visible components), loading skeleton with spinner, toast notification system with auto-retry (3x backoff + manual retry), cursor states per active tool (crosshair for connector/zone, grab for pan), hover animations, focus-visible rings
-- **Next:** Phase 5 (Sprint 7) — Deploy & Data (Production deploy, auth hardening, data population, testing)
+- **Phase:** Phase 5 in progress (Sprint 7: Deploy & Data)
+- **Completed:** All Phase 1-4 features + auth hardening (login rate limiting 5-attempt lockout, logout button, redirect flows), export to JSON (toolbar download), Vercel deployment (https://ecomup-one.vercel.app), GitHub repo (thnglee/ecomup-canvas), env vars configured
+- **Next:** Data population (7.6), end-to-end testing (7.7), bug fixes (7.9)
 
 ## Files to Read for Full Context
 - `PRD.md` — Full product requirements with acceptance criteria

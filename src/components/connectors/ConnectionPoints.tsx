@@ -60,8 +60,8 @@ export default function ConnectionPoints({
             key={anchor}
             className={`absolute w-[10px] h-[10px] rounded-full border-2 border-[#3b82f6] bg-[#1a1a2e] z-20 transition-opacity ${
               activeTool === "connector"
-                ? "opacity-100"
-                : "opacity-0 group-hover:opacity-100"
+                ? "opacity-100 group-hover:opacity-100"
+                : "opacity-0 pointer-events-none"
             }`}
             style={{
               left: pos.left - 5,

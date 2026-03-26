@@ -22,17 +22,22 @@ export default function LinkBox({ component }: LinkBoxProps) {
   const displayIcon = PRESET_ICONS[icon] || icon || "🔗";
   const accent = color_accent || "#3b82f6";
 
+  const normalizeUrl = (rawUrl: string) => {
+    if (/^https?:\/\//i.test(rawUrl)) return rawUrl;
+    return `https://${rawUrl}`;
+  };
+
   const handleCtrlClick = (e: React.MouseEvent) => {
     if (e.ctrlKey || e.metaKey) {
       e.stopPropagation();
       e.preventDefault();
-      if (url) window.open(url, "_blank", "noopener");
+      if (url) window.open(normalizeUrl(url), "_blank", "noopener");
     }
   };
 
   return (
     <div
-      className="w-full h-full bg-[#1a1a2e] border border-[#2a2a4a] rounded-lg flex items-start gap-3 p-3 hover:bg-[#222240] hover:border-[#3a3a5a] transition-colors relative overflow-hidden"
+      className="group w-full h-full bg-[#1a1a2e] border border-[#2a2a4a] rounded-lg flex items-start gap-3 p-3 hover:bg-[#222240] hover:border-[#3a3a5a] transition-colors relative overflow-hidden"
       style={{ borderLeftColor: accent, borderLeftWidth: 3 }}
       onClick={handleCtrlClick}
       title={url}
@@ -45,15 +50,16 @@ export default function LinkBox({ component }: LinkBoxProps) {
         )}
       </div>
       {url && (
-        <span
-          className="absolute top-2 right-2 text-[#555577] hover:text-[#e4e4ef] cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity text-xs"
-          onClick={(e) => {
-            e.stopPropagation();
-            window.open(url, "_blank", "noopener");
-          }}
+        <a
+          href={normalizeUrl(url)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="shrink-0 self-center w-7 h-7 flex items-center justify-center rounded-md bg-[#3b82f6]/20 text-[#3b82f6] hover:bg-[#3b82f6]/40 hover:text-white hover:shadow-[0_0_8px_rgba(59,130,246,0.5)] cursor-pointer transition-all text-sm font-bold"
+          onClick={(e) => e.stopPropagation()}
+          title={`Open ${url}`}
         >
           ↗
-        </span>
+        </a>
       )}
     </div>
   );
