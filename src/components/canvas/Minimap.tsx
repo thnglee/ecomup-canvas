@@ -3,8 +3,8 @@
 import { useRef, useCallback, useState, useMemo } from "react";
 import { useCanvasStore } from "@/stores/canvasStore";
 
-const MINIMAP_WIDTH = 200;
-const MINIMAP_HEIGHT = 150;
+const MINIMAP_WIDTH = 140;
+const MINIMAP_HEIGHT = 105;
 const MINIMAP_PADDING = 20;
 
 // Color map for component types

@@ -31,8 +31,8 @@ export const COLORS = {
     yellow: "#eab308",
   },
   grid: {
-    dot: "#333",
-    bg: "#1a1a1a",
+    dot: "#ffffff0a",
+    bg: "transparent",
   },
 } as const;
 
