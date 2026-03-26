@@ -2,6 +2,12 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { CLOCKS, HEADER_HEIGHT } from "@/lib/constants";
+import {
+  getScore,
+  getCurrentHour,
+  scoreToBarBg,
+} from "@/lib/timelineScoring";
+import TimelineModal from "./TimelineModal";
 
 interface TempData {
   min: number;
@@ -21,11 +27,11 @@ function formatTime(timezone: string, date: Date): string {
 export default function WorldClockBar() {
   const [now, setNow] = useState<Date | null>(null);
   const [temps, setTemps] = useState<Record<string, TempData>>({});
+  const [modalOpen, setModalOpen] = useState(false);
 
   // Fetch temperatures from Open-Meteo (free, no API key needed)
   const fetchTemps = useCallback(async () => {
     try {
-      // Batch all locations into parallel requests
       const results = await Promise.allSettled(
         CLOCKS.map(async (clock) => {
           const res = await fetch(
@@ -59,7 +65,6 @@ export default function WorldClockBar() {
     return () => clearInterval(interval);
   }, []);
 
-  // Fetch temps on mount, then refresh every 30 minutes
   useEffect(() => {
     fetchTemps();
     const interval = setInterval(fetchTemps, 30 * 60 * 1000);
@@ -67,32 +72,47 @@ export default function WorldClockBar() {
   }, [fetchTemps]);
 
   return (
-    <header
-      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center gap-4 px-4 bg-[#0d0d18] border-b border-[#2a2a4a] select-none"
-      style={{ height: HEADER_HEIGHT }}
-    >
-      {CLOCKS.map((clock) => {
-        const temp = temps[clock.timezone];
-        return (
-          <div
-            key={clock.timezone}
-            className="flex items-center gap-1.5 text-xs whitespace-nowrap"
-          >
-            <span>{clock.flag}</span>
-            <div className="flex flex-col items-start leading-tight">
-              <div className="flex items-center gap-1">
-                <span className="text-[#8888aa]">{clock.country}</span>
-                <span className="font-mono text-[#e4e4ef] w-[88px]">
-                  {now ? formatTime(clock.timezone, now) : "--:--:-- --"}
+    <>
+      <header
+        className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center gap-4 px-4 bg-[#0d0d18] border-b border-[#2a2a4a] select-none"
+        style={{ height: HEADER_HEIGHT }}
+      >
+        {CLOCKS.map((clock) => {
+          const temp = temps[clock.timezone];
+          const hour = getCurrentHour(clock.timezone);
+          const score = getScore(clock.country, hour);
+          const bgStyle = score !== null ? scoreToBarBg(score) : "transparent";
+
+          return (
+            <div
+              key={clock.timezone}
+              className="flex items-center gap-1.5 text-xs whitespace-nowrap cursor-pointer rounded-md px-2 py-1 transition-all hover:brightness-125"
+              style={{ background: bgStyle }}
+              onClick={() => setModalOpen(true)}
+              title={
+                score !== null
+                  ? `Purchase likelihood: ${(score * 100).toFixed(0)}%`
+                  : undefined
+              }
+            >
+              <span style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.5))" }}>{clock.flag}</span>
+              <div className="flex flex-col items-start leading-tight" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.7)" }}>
+                <div className="flex items-center gap-1">
+                  <span className="text-white/90">{clock.country}</span>
+                  <span className="font-mono w-[88px] font-bold text-white">
+                    {now ? formatTime(clock.timezone, now) : "--:--:-- --"}
+                  </span>
+                </div>
+                <span className="text-[10px] text-white/70">
+                  {temp ? `${temp.min}°–${temp.max}°C` : "…"}
                 </span>
               </div>
-              <span className="text-[10px] text-[#666688]">
-                {temp ? `${temp.min}°–${temp.max}°C` : "…"}
-              </span>
             </div>
-          </div>
-        );
-      })}
-    </header>
+          );
+        })}
+      </header>
+
+      <TimelineModal open={modalOpen} onClose={() => setModalOpen(false)} />
+    </>
   );
 }
