@@ -258,10 +258,10 @@ export default function ZoneRenderer({ zone }: ZoneRendererProps) {
           }}
         />
 
-        {/* Name label at top-left */}
+        {/* Name label — bold glowing banner */}
         <div
-          className="absolute -top-0.5 left-2 flex items-center gap-1"
-          style={{ transform: "translateY(-100%)" }}
+          className="absolute left-0 flex items-center"
+          style={{ transform: "translateY(-100%)", top: -2 }}
         >
           {isEditingName ? (
             <input
@@ -276,13 +276,24 @@ export default function ZoneRenderer({ zone }: ZoneRendererProps) {
                   setIsEditingName(false);
                 }
               }}
-              className="px-1.5 py-0.5 text-[10px] bg-[#1a1a2e] border border-[#3b82f6] rounded text-[#e4e4ef] outline-none"
-              style={{ minWidth: 60, maxWidth: 200 }}
+              className="px-4 py-1.5 text-sm font-bold bg-[#1a1a2e] border-2 rounded-md text-[#e4e4ef] outline-none"
+              style={{
+                minWidth: 100,
+                maxWidth: 400,
+                borderColor: zone.color,
+                boxShadow: `0 0 12px ${zone.color}60`,
+              }}
             />
           ) : (
             <span
-              className="px-1.5 py-0.5 text-[10px] rounded cursor-pointer hover:bg-[#222240]"
-              style={{ color: zone.color }}
+              className="px-4 py-1.5 rounded-md cursor-pointer font-bold text-sm tracking-wide uppercase"
+              style={{
+                backgroundColor: zone.color,
+                color: "#ffffff",
+                textShadow: `0 0 8px rgba(255,255,255,0.6), 0 0 20px ${zone.color}`,
+                boxShadow: `0 0 15px ${zone.color}80, 0 0 30px ${zone.color}40, inset 0 0 15px ${zone.color}30`,
+                letterSpacing: "0.05em",
+              }}
               onDoubleClick={(e) => {
                 e.stopPropagation();
                 setIsEditingName(true);

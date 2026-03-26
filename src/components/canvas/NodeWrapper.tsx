@@ -31,7 +31,7 @@ function NodeWrapper({
   const isSelected = selectedIds.includes(component.id);
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
-  const dragStart = useRef({ x: 0, y: 0, compX: 0, compY: 0 });
+  const dragStart = useRef({ x: 0, y: 0, compX: 0, compY: 0, otherSelected: [] as { id: string; x: number; y: number }[] });
   const resizeStart = useRef({ x: 0, y: 0, w: 0, h: 0, compX: 0, compY: 0, handle: "" });
 
   // Drag to move
@@ -42,13 +42,34 @@ function NodeWrapper({
       if (target.closest("input, textarea, select, button, a")) return;
 
       e.stopPropagation();
-      select(component.id, e.shiftKey);
+
+      // If shift-clicking, toggle selection; otherwise select if not already selected
+      const currentSelected = useCanvasStore.getState().selectedIds;
+      const alreadySelected = currentSelected.includes(component.id);
+
+      if (e.shiftKey) {
+        select(component.id, true);
+      } else if (!alreadySelected) {
+        select(component.id, false);
+      }
+
+      // Capture positions of all selected components (including this one)
+      const state = useCanvasStore.getState();
+      const allSelected = state.selectedIds;
+      const otherSelected = allSelected
+        .filter((id) => id !== component.id)
+        .map((id) => {
+          const c = state.components[id];
+          return c ? { id, x: c.position_x, y: c.position_y } : null;
+        })
+        .filter(Boolean) as { id: string; x: number; y: number }[];
 
       dragStart.current = {
         x: e.clientX,
         y: e.clientY,
         compX: component.position_x,
         compY: component.position_y,
+        otherSelected,
       };
       setIsDragging(true);
     },
@@ -63,30 +84,47 @@ function NodeWrapper({
       const dy = (e.clientY - dragStart.current.y) / viewport.zoom;
       const newX = snapToGrid(dragStart.current.compX + dx, snapEnabled);
       const newY = snapToGrid(dragStart.current.compY + dy, snapEnabled);
+
+      // Move the dragged component
       updateComponent(component.id, { position_x: newX, position_y: newY });
+
+      // Move all other selected components by the same snapped delta
+      const actualDx = newX - dragStart.current.compX;
+      const actualDy = newY - dragStart.current.compY;
+      dragStart.current.otherSelected.forEach(({ id, x, y }) => {
+        updateComponent(id, { position_x: x + actualDx, position_y: y + actualDy });
+      });
     };
 
     const handleUp = () => {
-      // Record move for undo (batch: one undo step for the whole drag)
+      // Record moves for undo (batch all selected into one undo step)
       const state = useCanvasStore.getState();
+      const moves: { id: string; oldX: number; oldY: number; newX: number; newY: number }[] = [];
+
       const comp = state.components[component.id];
       if (
         comp &&
         (comp.position_x !== dragStart.current.compX ||
           comp.position_y !== dragStart.current.compY)
       ) {
-        recordMoveComponents(
-          [
-            {
-              id: component.id,
-              oldX: dragStart.current.compX,
-              oldY: dragStart.current.compY,
-              newX: comp.position_x,
-              newY: comp.position_y,
-            },
-          ],
-          updateComponent
-        );
+        moves.push({
+          id: component.id,
+          oldX: dragStart.current.compX,
+          oldY: dragStart.current.compY,
+          newX: comp.position_x,
+          newY: comp.position_y,
+        });
+
+        dragStart.current.otherSelected.forEach(({ id, x, y }) => {
+          const c = state.components[id];
+          if (c) {
+            moves.push({ id, oldX: x, oldY: y, newX: c.position_x, newY: c.position_y });
+          }
+        });
+      }
+
+      if (moves.length > 0) {
+        recordMoveComponents(moves, updateComponent);
       }
       setIsDragging(false);
     };
