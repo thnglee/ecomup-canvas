@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useCanvasStore } from "@/stores/canvasStore";
+import { recordAddZone } from "@/stores/historyStore";
 import { screenToCanvas } from "@/lib/canvas/math";
 import { GRID_SIZE } from "@/lib/constants";
 import type { Zone } from "@/types/canvas";
@@ -93,6 +94,7 @@ export default function ZoneDrawTool({ containerRef }: ZoneDrawToolProps) {
           updated_at: new Date().toISOString(),
         };
         addZone(zone);
+        recordAddZone(zone, addZone, useCanvasStore.getState().deleteZone);
       }
 
       setDrawBox(null);

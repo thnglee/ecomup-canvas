@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useCanvasStore } from "@/stores/canvasStore";
+import { recordAddConnector, recordDeleteConnector, recordUpdateConnector } from "@/stores/historyStore";
 import { screenToCanvas } from "@/lib/canvas/math";
 import { getAnchorPoint } from "@/lib/canvas/connectors";
 import ConnectorLine from "./ConnectorLine";
@@ -69,7 +70,12 @@ export default function ConnectorLayer({ containerRef }: ConnectorLayerProps) {
       if (tag === "INPUT" || tag === "TEXTAREA") return;
 
       if (e.key === "Delete" || e.key === "Backspace") {
-        useCanvasStore.getState().deleteConnector(selectedConnectorId);
+        const state = useCanvasStore.getState();
+        const conn = state.connectors[selectedConnectorId];
+        if (conn) {
+          recordDeleteConnector({ ...conn }, state.addConnector, state.deleteConnector);
+        }
+        state.deleteConnector(selectedConnectorId);
         setSelectedConnectorId(null);
       }
     };
@@ -136,6 +142,7 @@ export default function ConnectorLayer({ containerRef }: ConnectorLayerProps) {
           updated_at: new Date().toISOString(),
         };
         state.addConnector(connector);
+        recordAddConnector(connector, state.addConnector, state.deleteConnector);
       }
 
       setDrawState(null);
@@ -287,6 +294,7 @@ function ConnectorContextMenu({
   const connector = useCanvasStore((s) => s.connectors[connectorId]);
   const updateConnector = useCanvasStore((s) => s.updateConnector);
   const deleteConnector = useCanvasStore((s) => s.deleteConnector);
+  const addConnector = useCanvasStore((s) => s.addConnector);
 
   if (!connector) return null;
 
@@ -323,7 +331,9 @@ function ConnectorContextMenu({
         <button
           key={opt.value}
           onClick={() => {
+            const oldType = connector.type;
             updateConnector(connectorId, { type: opt.value });
+            recordUpdateConnector(connectorId, { type: oldType }, { type: opt.value }, updateConnector);
             onClose();
           }}
           className={`w-full text-left px-3 py-1.5 text-xs hover:bg-[#222240] transition-colors ${
@@ -342,7 +352,9 @@ function ConnectorContextMenu({
         <button
           key={opt.value}
           onClick={() => {
+            const oldStyle = connector.style;
             updateConnector(connectorId, { style: opt.value });
+            recordUpdateConnector(connectorId, { style: oldStyle }, { style: opt.value }, updateConnector);
             onClose();
           }}
           className={`w-full text-left px-3 py-1.5 text-xs hover:bg-[#222240] transition-colors ${
@@ -362,7 +374,9 @@ function ConnectorContextMenu({
           <button
             key={opt.value}
             onClick={() => {
+              const oldColor = connector.color;
               updateConnector(connectorId, { color: opt.value });
+              recordUpdateConnector(connectorId, { color: oldColor }, { color: opt.value }, updateConnector);
               onClose();
             }}
             className="w-5 h-5 rounded-full border-2 transition-all"
@@ -380,6 +394,7 @@ function ConnectorContextMenu({
       {/* Delete */}
       <button
         onClick={() => {
+          recordDeleteConnector({ ...connector }, addConnector, deleteConnector);
           deleteConnector(connectorId);
           onClose();
         }}

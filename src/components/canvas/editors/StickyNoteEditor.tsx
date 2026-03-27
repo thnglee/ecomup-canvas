@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useCanvasStore } from "@/stores/canvasStore";
+import { recordUpdateComponent } from "@/stores/historyStore";
 import EditorPanel, { Field, TextArea, SelectInput, ColorPicker } from "./EditorPanel";
 import { NOTE_COLORS } from "../components/StickyNote";
 import type { CanvasComponent } from "@/types/canvas";
@@ -19,9 +20,11 @@ interface StickyNoteEditorProps {
 export default function StickyNoteEditor({ component, onClose }: StickyNoteEditorProps) {
   const updateComponent = useCanvasStore((s) => s.updateComponent);
   const [data, setData] = useState({ ...component.data });
+  const initialData = useRef({ ...component.data });
 
   useEffect(() => {
     setData({ ...component.data });
+    initialData.current = { ...component.data };
   }, [component.data]);
 
   const update = (partial: Record<string, unknown>) => {
@@ -30,8 +33,16 @@ export default function StickyNoteEditor({ component, onClose }: StickyNoteEdito
     updateComponent(component.id, { data: next });
   };
 
+  const handleClose = () => {
+    const currentData = useCanvasStore.getState().components[component.id]?.data;
+    if (currentData && JSON.stringify(currentData) !== JSON.stringify(initialData.current)) {
+      recordUpdateComponent(component.id, { data: initialData.current }, { data: currentData }, updateComponent);
+    }
+    onClose();
+  };
+
   return (
-    <EditorPanel title="Edit Sticky Note" onClose={onClose}>
+    <EditorPanel title="Edit Sticky Note" onClose={handleClose}>
       <Field label="Content (Markdown)">
         <TextArea
           value={data.content || ""}

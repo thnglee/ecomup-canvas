@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useCanvasStore } from "@/stores/canvasStore";
+import { recordMoveZone, recordResizeZone, recordUpdateZone, recordDeleteZone } from "@/stores/historyStore";
 import { GRID_SIZE } from "@/lib/constants";
 import type { Zone } from "@/types/canvas";
 
@@ -68,6 +69,7 @@ export default function ZoneRenderer({ zone }: ZoneRendererProps) {
   const handleDragStart = useCallback(
     (e: React.MouseEvent) => {
       if (e.button !== 0) return;
+      if (e.metaKey) return; // Let canvas pan when Command is held
       e.stopPropagation();
 
       const containedIds = getContainedComponentIds();
@@ -117,7 +119,33 @@ export default function ZoneRenderer({ zone }: ZoneRendererProps) {
       });
     };
 
-    const handleUp = () => setIsDragging(false);
+    const handleUp = () => {
+      // Record zone move + contained component moves for undo
+      const currentState = useCanvasStore.getState();
+      const currentZone = currentState.zones[zone.id];
+      if (currentZone && (currentZone.position_x !== dragStart.current.zoneX || currentZone.position_y !== dragStart.current.zoneY)) {
+        const componentMoves = dragStart.current.containedComponents
+          .map((id) => {
+            const orig = initialPositions[id];
+            const curr = currentState.components[id];
+            if (orig && curr) {
+              return { id, oldX: orig.x, oldY: orig.y, newX: curr.position_x, newY: curr.position_y };
+            }
+            return null;
+          })
+          .filter(Boolean) as Array<{ id: string; oldX: number; oldY: number; newX: number; newY: number }>;
+
+        recordMoveZone(
+          zone.id,
+          { position_x: dragStart.current.zoneX, position_y: dragStart.current.zoneY },
+          { position_x: currentZone.position_x, position_y: currentZone.position_y },
+          componentMoves,
+          updateZone,
+          updateComponent
+        );
+      }
+      setIsDragging(false);
+    };
 
     window.addEventListener("mousemove", handleMove);
     window.addEventListener("mouseup", handleUp);
@@ -130,6 +158,7 @@ export default function ZoneRenderer({ zone }: ZoneRendererProps) {
   // Resize zone
   const handleResizeStart = useCallback(
     (e: React.MouseEvent, handle: string) => {
+      if (e.metaKey) return; // Let canvas pan when Command is held
       e.stopPropagation();
       e.preventDefault();
       resizeStart.current = {
@@ -178,7 +207,23 @@ export default function ZoneRenderer({ zone }: ZoneRendererProps) {
       });
     };
 
-    const handleUp = () => setIsResizing(false);
+    const handleUp = () => {
+      const currentState = useCanvasStore.getState();
+      const currentZone = currentState.zones[zone.id];
+      const { w, h, zoneX, zoneY } = resizeStart.current;
+      if (
+        currentZone &&
+        (currentZone.width !== w || currentZone.height !== h || currentZone.position_x !== zoneX || currentZone.position_y !== zoneY)
+      ) {
+        recordResizeZone(
+          zone.id,
+          { width: w, height: h, position_x: zoneX, position_y: zoneY },
+          { width: currentZone.width, height: currentZone.height, position_x: currentZone.position_x, position_y: currentZone.position_y },
+          updateZone
+        );
+      }
+      setIsResizing(false);
+    };
 
     window.addEventListener("mousemove", handleMove);
     window.addEventListener("mouseup", handleUp);
@@ -204,7 +249,12 @@ export default function ZoneRenderer({ zone }: ZoneRendererProps) {
 
   // Save name
   const saveName = () => {
-    updateZone(zone.id, { name: name.trim() || "Untitled Zone" });
+    const newName = name.trim() || "Untitled Zone";
+    if (newName !== zone.name) {
+      const oldName = zone.name;
+      updateZone(zone.id, { name: newName });
+      recordUpdateZone(zone.id, { name: oldName }, { name: newName }, updateZone);
+    }
     setIsEditingName(false);
   };
 
@@ -352,7 +402,9 @@ export default function ZoneRenderer({ zone }: ZoneRendererProps) {
               <button
                 key={c.value}
                 onClick={() => {
+                  const oldColor = zone.color;
                   updateZone(zone.id, { color: c.value });
+                  recordUpdateZone(zone.id, { color: oldColor }, { color: c.value }, updateZone);
                   setShowCtxMenu(null);
                 }}
                 className="w-5 h-5 rounded-full border-2 transition-all"
@@ -369,6 +421,8 @@ export default function ZoneRenderer({ zone }: ZoneRendererProps) {
 
           <button
             onClick={() => {
+              const addZone = useCanvasStore.getState().addZone;
+              recordDeleteZone({ ...zone }, addZone, deleteZone);
               deleteZone(zone.id);
               setShowCtxMenu(null);
             }}

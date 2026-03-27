@@ -19,6 +19,7 @@ import { useCanvasStore } from "@/stores/canvasStore";
 import {
   recordAddComponent,
   recordDeleteComponents,
+  recordUpdateComponent,
 } from "@/stores/historyStore";
 import { screenToCanvas } from "@/lib/canvas/math";
 import { GRID_SIZE, HEADER_HEIGHT, STATUSBAR_HEIGHT, SIDEBAR_WIDTH } from "@/lib/constants";
@@ -217,7 +218,13 @@ export default function Canvas() {
     const state = useCanvasStore.getState();
     const maxZ = Math.max(0, ...Object.values(state.components).map((c) => c.z_index));
     selectedIds.forEach((id, i) => {
-      updateComponent(id, { z_index: maxZ + i + 1 });
+      const comp = state.components[id];
+      if (comp) {
+        const oldZ = comp.z_index;
+        const newZ = maxZ + i + 1;
+        updateComponent(id, { z_index: newZ });
+        recordUpdateComponent(id, { z_index: oldZ }, { z_index: newZ }, updateComponent);
+      }
     });
   }, [selectedIds, updateComponent]);
 
@@ -225,7 +232,13 @@ export default function Canvas() {
     const state = useCanvasStore.getState();
     const minZ = Math.min(0, ...Object.values(state.components).map((c) => c.z_index));
     selectedIds.forEach((id, i) => {
-      updateComponent(id, { z_index: minZ - (selectedIds.length - i) });
+      const comp = state.components[id];
+      if (comp) {
+        const oldZ = comp.z_index;
+        const newZ = minZ - (selectedIds.length - i);
+        updateComponent(id, { z_index: newZ });
+        recordUpdateComponent(id, { z_index: oldZ }, { z_index: newZ }, updateComponent);
+      }
     });
   }, [selectedIds, updateComponent]);
 

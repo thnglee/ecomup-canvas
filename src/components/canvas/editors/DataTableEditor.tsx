@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useCanvasStore } from "@/stores/canvasStore";
+import { recordUpdateComponent } from "@/stores/historyStore";
 import EditorPanel, { Field, TextInput } from "./EditorPanel";
 import type { CanvasComponent } from "@/types/canvas";
 
@@ -15,12 +16,22 @@ export default function DataTableEditor({ component, onClose }: DataTableEditorP
   const [title, setTitle] = useState(component.data.title || "");
   const [columns, setColumns] = useState<string[]>(component.data.columns || ["Column 1"]);
   const [rows, setRows] = useState<string[][]>(component.data.rows || []);
+  const initialData = useRef({ ...component.data });
 
   useEffect(() => {
     setTitle(component.data.title || "");
     setColumns(component.data.columns || ["Column 1"]);
     setRows(component.data.rows || []);
+    initialData.current = { ...component.data };
   }, [component.data]);
+
+  const handleClose = () => {
+    const currentData = useCanvasStore.getState().components[component.id]?.data;
+    if (currentData && JSON.stringify(currentData) !== JSON.stringify(initialData.current)) {
+      recordUpdateComponent(component.id, { data: initialData.current }, { data: currentData }, updateComponent);
+    }
+    onClose();
+  };
 
   const save = useCallback(
     (t: string, cols: string[], r: string[][]) => {
@@ -81,7 +92,7 @@ export default function DataTableEditor({ component, onClose }: DataTableEditorP
   };
 
   return (
-    <EditorPanel title="Edit Data Table" onClose={onClose}>
+    <EditorPanel title="Edit Data Table" onClose={handleClose}>
       <Field label="Title">
         <TextInput value={title} onChange={updateTitle} placeholder="Table title" />
       </Field>

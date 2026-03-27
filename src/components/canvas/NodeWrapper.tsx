@@ -38,6 +38,7 @@ function NodeWrapper({
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
       if (e.button !== 0) return;
+      if (e.metaKey) return; // Let canvas pan when Command is held
       const target = e.target as HTMLElement;
       if (target.closest("input, textarea, select, button, a")) return;
 
@@ -140,6 +141,7 @@ function NodeWrapper({
   // Resize handles
   const handleResizeStart = useCallback(
     (e: React.MouseEvent, handle: string) => {
+      if (e.metaKey) return; // Let canvas pan when Command is held
       e.stopPropagation();
       e.preventDefault();
       resizeStart.current = {

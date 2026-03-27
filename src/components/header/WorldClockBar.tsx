@@ -82,7 +82,11 @@ export default function WorldClockBar() {
           // Use the same `now` for display and scoring to guarantee consistency
           const hour = now ? getCurrentHour(clock.timezone, now) : null;
           const score = hour !== null ? getScore(clock.country, hour) : null;
+          const nextScore = hour !== null ? getScore(clock.country, (hour + 1) % 24) : null;
           const bgStyle = score !== null ? scoreToBarBg(score) : "transparent";
+          const trend = score !== null && nextScore !== null
+            ? nextScore > score ? "up" : nextScore < score ? "down" : "flat"
+            : null;
 
           return (
             <div
@@ -97,7 +101,7 @@ export default function WorldClockBar() {
               }
             >
               <span style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.5))" }}>{clock.flag}</span>
-              <div className="flex flex-col items-start leading-tight" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.7)" }}>
+              <div className="flex flex-col leading-tight" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.7)" }}>
                 <div className="flex items-center gap-1">
                   <span className="text-white/90">{clock.country}</span>
                   <span className="font-mono w-[88px] font-bold text-white">
@@ -108,6 +112,14 @@ export default function WorldClockBar() {
                   {temp ? `${temp.min}°–${temp.max}°C` : "…"}
                 </span>
               </div>
+              {score !== null && (
+                <span className="text-[10px] font-mono font-semibold text-white/90 flex items-center gap-0.5 self-end ml-auto" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.7)" }}>
+                  {score.toFixed(2)}
+                  {trend === "up" && <span className="text-green-300">▲</span>}
+                  {trend === "down" && <span className="text-red-300">▼</span>}
+                  {trend === "flat" && <span className="text-white/50">▸</span>}
+                </span>
+              )}
             </div>
           );
         })}

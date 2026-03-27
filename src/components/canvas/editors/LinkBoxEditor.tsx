@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useCanvasStore } from "@/stores/canvasStore";
+import { recordUpdateComponent } from "@/stores/historyStore";
 import EditorPanel, { Field, TextInput, TextArea } from "./EditorPanel";
 import { PRESET_ICONS } from "../components/LinkBox";
 import type { CanvasComponent } from "@/types/canvas";
@@ -24,9 +25,11 @@ interface LinkBoxEditorProps {
 export default function LinkBoxEditor({ component, onClose }: LinkBoxEditorProps) {
   const updateComponent = useCanvasStore((s) => s.updateComponent);
   const [data, setData] = useState({ ...component.data });
+  const initialData = useRef({ ...component.data });
 
   useEffect(() => {
     setData({ ...component.data });
+    initialData.current = { ...component.data };
   }, [component.data]);
 
   const update = (partial: Record<string, unknown>) => {
@@ -35,8 +38,16 @@ export default function LinkBoxEditor({ component, onClose }: LinkBoxEditorProps
     updateComponent(component.id, { data: next });
   };
 
+  const handleClose = () => {
+    const currentData = useCanvasStore.getState().components[component.id]?.data;
+    if (currentData && JSON.stringify(currentData) !== JSON.stringify(initialData.current)) {
+      recordUpdateComponent(component.id, { data: initialData.current }, { data: currentData }, updateComponent);
+    }
+    onClose();
+  };
+
   return (
-    <EditorPanel title="Edit Link Box" onClose={onClose}>
+    <EditorPanel title="Edit Link Box" onClose={handleClose}>
       <Field label="Title">
         <TextInput
           value={data.title || ""}

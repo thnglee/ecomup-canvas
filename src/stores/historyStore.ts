@@ -205,3 +205,67 @@ export function recordDeleteConnector(
     () => deleteFn(connector.id)
   );
 }
+
+// Helper: record connector update (undo = restore old, redo = apply new)
+export function recordUpdateConnector(
+  id: string,
+  oldValues: Partial<Connector>,
+  newValues: Partial<Connector>,
+  updateFn: (id: string, updates: Partial<Connector>) => void
+) {
+  recordAction(
+    "update_connector",
+    () => updateFn(id, oldValues),
+    () => updateFn(id, newValues)
+  );
+}
+
+// Helper: record zone update (undo = restore old, redo = apply new)
+export function recordUpdateZone(
+  id: string,
+  oldValues: Partial<Zone>,
+  newValues: Partial<Zone>,
+  updateFn: (id: string, updates: Partial<Zone>) => void
+) {
+  recordAction(
+    "update_zone",
+    () => updateFn(id, oldValues),
+    () => updateFn(id, newValues)
+  );
+}
+
+// Helper: record zone move with contained components (single undo step)
+export function recordMoveZone(
+  zoneId: string,
+  oldZone: Partial<Zone>,
+  newZone: Partial<Zone>,
+  componentMoves: Array<{ id: string; oldX: number; oldY: number; newX: number; newY: number }>,
+  updateZoneFn: (id: string, updates: Partial<Zone>) => void,
+  updateComponentFn: (id: string, updates: Partial<CanvasComponent>) => void
+) {
+  recordAction(
+    "update_zone",
+    () => {
+      updateZoneFn(zoneId, oldZone);
+      componentMoves.forEach((m) => updateComponentFn(m.id, { position_x: m.oldX, position_y: m.oldY }));
+    },
+    () => {
+      updateZoneFn(zoneId, newZone);
+      componentMoves.forEach((m) => updateComponentFn(m.id, { position_x: m.newX, position_y: m.newY }));
+    }
+  );
+}
+
+// Helper: record zone resize (single undo step)
+export function recordResizeZone(
+  zoneId: string,
+  oldValues: Partial<Zone>,
+  newValues: Partial<Zone>,
+  updateFn: (id: string, updates: Partial<Zone>) => void
+) {
+  recordAction(
+    "update_zone",
+    () => updateFn(zoneId, oldValues),
+    () => updateFn(zoneId, newValues)
+  );
+}

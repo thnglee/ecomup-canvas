@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useCanvasStore } from "@/stores/canvasStore";
+import { recordUpdateConnector } from "@/stores/historyStore";
 import { canvasToScreen } from "@/lib/canvas/math";
 import { HEADER_HEIGHT } from "@/lib/constants";
 import { getAnchorPoint } from "@/lib/canvas/connectors";
@@ -43,7 +44,12 @@ export default function ConnectorLabelEditor({
   const sidebarOffset = useCanvasStore.getState().sidebarCollapsed ? 0 : 260;
 
   const handleSave = () => {
-    updateConnector(connectorId, { label: label.trim() || null });
+    const newLabel = label.trim() || null;
+    if (newLabel !== connector.label) {
+      const oldLabel = connector.label;
+      updateConnector(connectorId, { label: newLabel });
+      recordUpdateConnector(connectorId, { label: oldLabel }, { label: newLabel }, updateConnector);
+    }
     onClose();
   };
 
