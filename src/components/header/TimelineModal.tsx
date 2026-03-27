@@ -27,11 +27,12 @@ export default function TimelineModal({ open, onClose }: TimelineModalProps) {
   useEffect(() => {
     if (!open) return;
     const update = () => {
+      const d = new Date();
       const hours: Record<string, number> = {};
       CLOCKS.forEach((clock) => {
         const key = COUNTRY_TO_SCORING_KEY[clock.country];
         if (key) {
-          hours[key] = getCurrentHour(clock.timezone);
+          hours[key] = getCurrentHour(clock.timezone, d);
         }
       });
       setCurrentHours(hours);

@@ -79,8 +79,9 @@ export default function WorldClockBar() {
       >
         {CLOCKS.map((clock) => {
           const temp = temps[clock.timezone];
-          const hour = getCurrentHour(clock.timezone);
-          const score = getScore(clock.country, hour);
+          // Use the same `now` for display and scoring to guarantee consistency
+          const hour = now ? getCurrentHour(clock.timezone, now) : null;
+          const score = hour !== null ? getScore(clock.country, hour) : null;
           const bgStyle = score !== null ? scoreToBarBg(score) : "transparent";
 
           return (

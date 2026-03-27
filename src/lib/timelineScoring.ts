@@ -29,14 +29,15 @@ export const COUNTRY_TO_SCORING_KEY: Record<string, string> = {
   // Vietnam has no scoring data
 };
 
-/** Get the current hour (0-23) in a given timezone */
-export function getCurrentHour(timezone: string): number {
-  const now = new Date();
+/** Get the hour (0-23) in a given timezone for the supplied date (defaults to now) */
+export function getCurrentHour(timezone: string, date?: Date): number {
+  const d = date ?? new Date();
+  // Use hourCycle "h23" (0-23) explicitly — hour12:false is unreliable in Safari
   const hourStr = new Intl.DateTimeFormat("en-US", {
     timeZone: timezone,
     hour: "numeric",
-    hour12: false,
-  }).format(now);
+    hourCycle: "h23",
+  }).format(d);
   return parseInt(hourStr, 10) % 24;
 }
 
