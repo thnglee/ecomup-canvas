@@ -63,7 +63,7 @@ export function useDataLoader() {
         .eq("user_id", user.id);
       if (connectors) setConnectors(connectors as unknown as Connector[]);
 
-      markClean();
+      markClean(useCanvasStore.getState().dirtyVersion);
       setIsLoaded(true);
     }
 

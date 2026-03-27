@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { HEADER_HEIGHT, STATUSBAR_HEIGHT } from "@/lib/constants";
+import { forceSave } from "@/hooks/useAutoSave";
 
 interface EditorPanelProps {
   title: string;
@@ -41,7 +42,41 @@ export default function EditorPanel({ title, children, onClose }: EditorPanelPro
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
         {children}
       </div>
+      {/* Save button */}
+      <div className="px-4 py-3 border-t border-[#2a2a4a] shrink-0">
+        <SaveButton />
+      </div>
     </div>
+  );
+}
+
+function SaveButton() {
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    setSaved(false);
+    await forceSave();
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  return (
+    <button
+      onClick={handleSave}
+      disabled={saving}
+      className={`w-full py-2 px-4 rounded text-sm font-medium transition-all ${
+        saved
+          ? "bg-[#22c55e]/20 text-[#22c55e] border border-[#22c55e]/30"
+          : saving
+            ? "bg-[#3b82f6]/10 text-[#8888aa] border border-[#2a2a4a] cursor-wait"
+            : "bg-[#3b82f6] text-white hover:bg-[#2563eb] border border-[#3b82f6]"
+      }`}
+    >
+      {saved ? "Saved!" : saving ? "Saving..." : "Save"}
+    </button>
   );
 }
 

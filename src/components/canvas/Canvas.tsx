@@ -179,7 +179,7 @@ export default function Canvas() {
         position_x: orig.position_x + 20,
         position_y: orig.position_y + 20,
         z_index: maxZ + i + 1,
-        data: { ...orig.data },
+        data: JSON.parse(JSON.stringify(orig.data)),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };

@@ -60,8 +60,9 @@ interface CanvasStore {
 
   // Dirty tracking
   isDirty: boolean;
+  dirtyVersion: number;
   markDirty: () => void;
-  markClean: () => void;
+  markClean: (savedVersion: number) => void;
 
   // Deletion tracking (for Supabase sync)
   deletedComponentIds: string[];
@@ -83,6 +84,7 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
           : state.viewport.zoom,
       },
       isDirty: true,
+      dirtyVersion: state.dirtyVersion + 1,
     })),
 
   // Components
@@ -91,6 +93,7 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
     set((state) => ({
       components: { ...state.components, [c.id]: c },
       isDirty: true,
+      dirtyVersion: state.dirtyVersion + 1,
     })),
   updateComponent: (id, updates) =>
     set((state) => {
@@ -102,6 +105,7 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
           [id]: { ...existing, ...updates, updated_at: new Date().toISOString() },
         },
         isDirty: true,
+        dirtyVersion: state.dirtyVersion + 1,
       };
     }),
   deleteComponents: (ids) =>
@@ -113,6 +117,7 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
         selectedIds: state.selectedIds.filter((id) => !ids.includes(id)),
         deletedComponentIds: [...state.deletedComponentIds, ...ids],
         isDirty: true,
+        dirtyVersion: state.dirtyVersion + 1,
       };
     }),
   setComponents: (components) =>
@@ -123,7 +128,7 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
   // Zones
   zones: {},
   addZone: (z) =>
-    set((state) => ({ zones: { ...state.zones, [z.id]: z }, isDirty: true })),
+    set((state) => ({ zones: { ...state.zones, [z.id]: z }, isDirty: true, dirtyVersion: state.dirtyVersion + 1 })),
   updateZone: (id, updates) =>
     set((state) => {
       const existing = state.zones[id];
@@ -134,13 +139,14 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
           [id]: { ...existing, ...updates, updated_at: new Date().toISOString() },
         },
         isDirty: true,
+        dirtyVersion: state.dirtyVersion + 1,
       };
     }),
   deleteZone: (id) =>
     set((state) => {
       const zones = { ...state.zones };
       delete zones[id];
-      return { zones, deletedZoneIds: [...state.deletedZoneIds, id], isDirty: true };
+      return { zones, deletedZoneIds: [...state.deletedZoneIds, id], isDirty: true, dirtyVersion: state.dirtyVersion + 1 };
     }),
   setZones: (zones) =>
     set({ zones: Object.fromEntries(zones.map((z) => [z.id, z])) }),
@@ -151,6 +157,7 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
     set((state) => ({
       connectors: { ...state.connectors, [c.id]: c },
       isDirty: true,
+      dirtyVersion: state.dirtyVersion + 1,
     })),
   updateConnector: (id, updates) =>
     set((state) => {
@@ -162,13 +169,14 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
           [id]: { ...existing, ...updates, updated_at: new Date().toISOString() },
         },
         isDirty: true,
+        dirtyVersion: state.dirtyVersion + 1,
       };
     }),
   deleteConnector: (id) =>
     set((state) => {
       const connectors = { ...state.connectors };
       delete connectors[id];
-      return { connectors, deletedConnectorIds: [...state.deletedConnectorIds, id], isDirty: true };
+      return { connectors, deletedConnectorIds: [...state.deletedConnectorIds, id], isDirty: true, dirtyVersion: state.dirtyVersion + 1 };
     }),
   setConnectors: (connectors) =>
     set({
@@ -197,11 +205,11 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
 
   // UI State
   sidebarCollapsed: false,
-  setSidebarCollapsed: (v) => set({ sidebarCollapsed: v, isDirty: true }),
+  setSidebarCollapsed: (v) => set((state) => ({ sidebarCollapsed: v, isDirty: true, dirtyVersion: state.dirtyVersion + 1 })),
   minimapVisible: true,
-  setMinimapVisible: (v) => set({ minimapVisible: v, isDirty: true }),
+  setMinimapVisible: (v) => set((state) => ({ minimapVisible: v, isDirty: true, dirtyVersion: state.dirtyVersion + 1 })),
   snapToGrid: true,
-  setSnapToGrid: (v) => set({ snapToGrid: v, isDirty: true }),
+  setSnapToGrid: (v) => set((state) => ({ snapToGrid: v, isDirty: true, dirtyVersion: state.dirtyVersion + 1 })),
   activeTool: "select",
   setActiveTool: (t) => set({ activeTool: t }),
 
@@ -215,8 +223,15 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
 
   // Dirty tracking
   isDirty: false,
-  markDirty: () => set({ isDirty: true }),
-  markClean: () => set({ isDirty: false }),
+  dirtyVersion: 0,
+  markDirty: () => set((state) => ({ isDirty: true, dirtyVersion: state.dirtyVersion + 1 })),
+  markClean: (savedVersion: number) => set((state) => {
+    // Only clean if no new edits happened during the save
+    if (state.dirtyVersion === savedVersion) {
+      return { isDirty: false };
+    }
+    return {};
+  }),
 
   // Deletion tracking
   deletedComponentIds: [],
