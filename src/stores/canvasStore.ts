@@ -58,6 +58,10 @@ interface CanvasStore {
   isLoaded: boolean;
   setIsLoaded: (v: boolean) => void;
 
+  // Editor open (suppresses auto-save)
+  editorOpen: boolean;
+  setEditorOpen: (v: boolean) => void;
+
   // Dirty tracking
   isDirty: boolean;
   dirtyVersion: number;
@@ -220,6 +224,10 @@ export const useCanvasStore = create<CanvasStore>((set) => ({
   // Data loaded
   isLoaded: false,
   setIsLoaded: (v) => set({ isLoaded: v }),
+
+  // Editor open
+  editorOpen: false,
+  setEditorOpen: (v) => set({ editorOpen: v }),
 
   // Dirty tracking
   isDirty: false,

@@ -18,16 +18,24 @@ export default function ImageEditor({ component, onClose }: ImageEditorProps) {
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const initialData = useRef({ ...component.data });
+  const savedData = useRef({ ...component.data });
 
   useEffect(() => {
     setData({ ...component.data });
     initialData.current = { ...component.data };
+    savedData.current = { ...component.data };
   }, [component.data]);
 
   const update = (partial: Record<string, unknown>) => {
     const next = { ...data, ...partial };
     setData(next);
     updateComponent(component.id, { data: next });
+  };
+
+  const hasChanges = JSON.stringify(data) !== JSON.stringify(savedData.current);
+
+  const handleSave = () => {
+    savedData.current = { ...data };
   };
 
   const handleClose = () => {
@@ -70,7 +78,7 @@ export default function ImageEditor({ component, onClose }: ImageEditorProps) {
   };
 
   return (
-    <EditorPanel title="Edit Image" onClose={handleClose}>
+    <EditorPanel title="Edit Image" onClose={handleClose} hasChanges={hasChanges} onSave={handleSave}>
       <Field label="Image URL">
         <TextInput
           value={data.image_url || ""}

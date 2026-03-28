@@ -21,16 +21,24 @@ export default function StickyNoteEditor({ component, onClose }: StickyNoteEdito
   const updateComponent = useCanvasStore((s) => s.updateComponent);
   const [data, setData] = useState({ ...component.data });
   const initialData = useRef({ ...component.data });
+  const savedData = useRef({ ...component.data });
 
   useEffect(() => {
     setData({ ...component.data });
     initialData.current = { ...component.data };
+    savedData.current = { ...component.data };
   }, [component.data]);
 
   const update = (partial: Record<string, unknown>) => {
     const next = { ...data, ...partial };
     setData(next);
     updateComponent(component.id, { data: next });
+  };
+
+  const hasChanges = JSON.stringify(data) !== JSON.stringify(savedData.current);
+
+  const handleSave = () => {
+    savedData.current = { ...data };
   };
 
   const handleClose = () => {
@@ -42,7 +50,7 @@ export default function StickyNoteEditor({ component, onClose }: StickyNoteEdito
   };
 
   return (
-    <EditorPanel title="Edit Sticky Note" onClose={handleClose}>
+    <EditorPanel title="Edit Sticky Note" onClose={handleClose} hasChanges={hasChanges} onSave={handleSave}>
       <Field label="Content (Markdown)">
         <TextArea
           value={data.content || ""}

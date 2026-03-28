@@ -17,18 +17,31 @@ export default function DataTableEditor({ component, onClose }: DataTableEditorP
   const [columns, setColumns] = useState<string[]>(component.data.columns || ["Column 1"]);
   const [rows, setRows] = useState<string[][]>(component.data.rows || []);
   const initialData = useRef({ ...component.data });
+  const savedData = useRef({ ...component.data });
 
   useEffect(() => {
     setTitle(component.data.title || "");
     setColumns(component.data.columns || ["Column 1"]);
     setRows(component.data.rows || []);
     initialData.current = { ...component.data };
+    savedData.current = { ...component.data };
   }, [component.data]);
 
+  const currentData = { title, columns, rows };
+  const hasChanges = JSON.stringify(currentData) !== JSON.stringify({
+    title: savedData.current.title || "",
+    columns: savedData.current.columns || ["Column 1"],
+    rows: savedData.current.rows || [],
+  });
+
+  const handleSave = () => {
+    savedData.current = { ...currentData };
+  };
+
   const handleClose = () => {
-    const currentData = useCanvasStore.getState().components[component.id]?.data;
-    if (currentData && JSON.stringify(currentData) !== JSON.stringify(initialData.current)) {
-      recordUpdateComponent(component.id, { data: initialData.current }, { data: currentData }, updateComponent);
+    const storeData = useCanvasStore.getState().components[component.id]?.data;
+    if (storeData && JSON.stringify(storeData) !== JSON.stringify(initialData.current)) {
+      recordUpdateComponent(component.id, { data: initialData.current }, { data: storeData }, updateComponent);
     }
     onClose();
   };
@@ -92,7 +105,7 @@ export default function DataTableEditor({ component, onClose }: DataTableEditorP
   };
 
   return (
-    <EditorPanel title="Edit Data Table" onClose={handleClose}>
+    <EditorPanel title="Edit Data Table" onClose={handleClose} hasChanges={hasChanges} onSave={handleSave}>
       <Field label="Title">
         <TextInput value={title} onChange={updateTitle} placeholder="Table title" />
       </Field>

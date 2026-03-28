@@ -118,7 +118,7 @@ export function useAutoSave() {
 
   useEffect(() => {
     const unsub = useCanvasStore.subscribe((state, prevState) => {
-      if (state.isDirty && state.isLoaded && state.dirtyVersion !== prevState.dirtyVersion) {
+      if (state.isDirty && state.isLoaded && !state.editorOpen && state.dirtyVersion !== prevState.dirtyVersion) {
         if (timerRef.current) clearTimeout(timerRef.current);
         timerRef.current = setTimeout(save, AUTOSAVE_DEBOUNCE_MS);
       }

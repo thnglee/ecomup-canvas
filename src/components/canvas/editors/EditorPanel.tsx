@@ -2,15 +2,26 @@
 
 import { useEffect, useCallback, useState } from "react";
 import { HEADER_HEIGHT, STATUSBAR_HEIGHT } from "@/lib/constants";
+import { useCanvasStore } from "@/stores/canvasStore";
 import { forceSave } from "@/hooks/useAutoSave";
 
 interface EditorPanelProps {
   title: string;
   children: React.ReactNode;
   onClose: () => void;
+  hasChanges: boolean;
+  onSave: () => void;
 }
 
-export default function EditorPanel({ title, children, onClose }: EditorPanelProps) {
+export default function EditorPanel({ title, children, onClose, hasChanges, onSave }: EditorPanelProps) {
+  const setEditorOpen = useCanvasStore((s) => s.setEditorOpen);
+
+  // Suppress auto-save while editor is open
+  useEffect(() => {
+    setEditorOpen(true);
+    return () => setEditorOpen(false);
+  }, [setEditorOpen]);
+
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -44,35 +55,40 @@ export default function EditorPanel({ title, children, onClose }: EditorPanelPro
       </div>
       {/* Save button */}
       <div className="px-4 py-3 border-t border-[#2a2a4a] shrink-0">
-        <SaveButton />
+        <SaveButton hasChanges={hasChanges} onSave={onSave} />
       </div>
     </div>
   );
 }
 
-function SaveButton() {
+function SaveButton({ hasChanges, onSave }: { hasChanges: boolean; onSave: () => void }) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   const handleSave = async () => {
     setSaving(true);
     setSaved(false);
+    onSave();
     await forceSave();
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
 
+  const disabled = saving || (!hasChanges && !saved);
+
   return (
     <button
       onClick={handleSave}
-      disabled={saving}
+      disabled={disabled}
       className={`w-full py-2 px-4 rounded text-sm font-medium transition-all ${
         saved
           ? "bg-[#22c55e]/20 text-[#22c55e] border border-[#22c55e]/30"
           : saving
             ? "bg-[#3b82f6]/10 text-[#8888aa] border border-[#2a2a4a] cursor-wait"
-            : "bg-[#3b82f6] text-white hover:bg-[#2563eb] border border-[#3b82f6]"
+            : disabled
+              ? "bg-[#2a2a4a]/50 text-[#555577] border border-[#2a2a4a] cursor-not-allowed"
+              : "bg-[#3b82f6] text-white hover:bg-[#2563eb] border border-[#3b82f6]"
       }`}
     >
       {saved ? "Saved!" : saving ? "Saving..." : "Save"}
