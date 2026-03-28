@@ -20,7 +20,6 @@ export default function ProcessBlockEditor({ component, onClose }: ProcessBlockE
   useEffect(() => {
     setData({ ...component.data });
     initialData.current = { ...component.data };
-    savedData.current = { ...component.data };
   }, [component.data]);
 
   const update = (partial: Record<string, unknown>) => {

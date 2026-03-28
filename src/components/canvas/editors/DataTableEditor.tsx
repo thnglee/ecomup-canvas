@@ -24,7 +24,6 @@ export default function DataTableEditor({ component, onClose }: DataTableEditorP
     setColumns(component.data.columns || ["Column 1"]);
     setRows(component.data.rows || []);
     initialData.current = { ...component.data };
-    savedData.current = { ...component.data };
   }, [component.data]);
 
   const currentData = { title, columns, rows };

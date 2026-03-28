@@ -10,7 +10,7 @@ let retryCount = 0;
 
 async function performSave() {
   const state = useCanvasStore.getState();
-  if (!state.isDirty || !state.isLoaded) return;
+  if (!state.isDirty || !state.isLoaded || state.editorOpen) return;
 
   const savedVersion = state.dirtyVersion;
   const supabase = createClient();

@@ -23,7 +23,6 @@ export default function ImageEditor({ component, onClose }: ImageEditorProps) {
   useEffect(() => {
     setData({ ...component.data });
     initialData.current = { ...component.data };
-    savedData.current = { ...component.data };
   }, [component.data]);
 
   const update = (partial: Record<string, unknown>) => {

@@ -26,7 +26,6 @@ export default function StickyNoteEditor({ component, onClose }: StickyNoteEdito
   useEffect(() => {
     setData({ ...component.data });
     initialData.current = { ...component.data };
-    savedData.current = { ...component.data };
   }, [component.data]);
 
   const update = (partial: Record<string, unknown>) => {
