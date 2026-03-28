@@ -20,12 +20,56 @@ interface TimelineModalProps {
 const COLUMN_KEYS = ["US", "UK", "Australia", "Canada", "New_Zealand", "Germany"];
 const COLUMN_LABELS = ["US", "UK", "Australia", "Canada", "NZ", "Germany"];
 
+const PEAK_THRESHOLD = 0.75;
+
+// Country timezone lookup (from CLOCKS)
+const COUNTRY_TZ: Record<string, string> = {
+  US: "America/New_York",
+  UK: "Europe/London",
+  Australia: "Australia/Sydney",
+  Canada: "America/Toronto",
+  New_Zealand: "Pacific/Auckland",
+  Germany: "Europe/Berlin",
+};
+const VN_TZ = "Asia/Ho_Chi_Minh";
+
+/** Convert a local hour (0-23) in a country's timezone to Vietnam time label */
+function toVietnamTime(countryKey: string, localHour: number): string {
+  const tz = COUNTRY_TZ[countryKey];
+  if (!tz) return "";
+  // Use a reference date and compute offsets via Intl
+  const ref = new Date();
+  const getOffset = (timezone: string) => {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: timezone,
+      hour: "numeric",
+      minute: "numeric",
+      hourCycle: "h23",
+    }).formatToParts(ref);
+    const h = parseInt(parts.find((p) => p.type === "hour")!.value, 10);
+    const m = parseInt(parts.find((p) => p.type === "minute")!.value, 10);
+    return h * 60 + m;
+  };
+  const countryNow = getOffset(tz);
+  const vnNow = getOffset(VN_TZ);
+  const diffMinutes = vnNow - countryNow;
+  const vnHour = ((localHour * 60 + diffMinutes) / 60 + 24) % 24;
+  const h = Math.floor(vnHour);
+  const suffix = h < 12 ? "AM" : "PM";
+  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return `${h12}${suffix}`;
+}
+
 export default function TimelineModal({ open, onClose }: TimelineModalProps) {
   const [currentHours, setCurrentHours] = useState<Record<string, number>>({});
   const tableRef = useRef<HTMLDivElement>(null);
+  const hasScrolled = useRef(false);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      hasScrolled.current = false;
+      return;
+    }
     const update = () => {
       const d = new Date();
       const hours: Record<string, number> = {};
@@ -43,7 +87,7 @@ export default function TimelineModal({ open, onClose }: TimelineModalProps) {
   }, [open]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || hasScrolled.current) return;
     const timeout = setTimeout(() => {
       const firstKey = COLUMN_KEYS[0];
       const hour = currentHours[firstKey];
@@ -51,6 +95,7 @@ export default function TimelineModal({ open, onClose }: TimelineModalProps) {
         const row = tableRef.current.querySelector(`[data-hour="${hour}"]`);
         if (row) {
           row.scrollIntoView({ block: "center", behavior: "smooth" });
+          hasScrolled.current = true;
         }
       }
     }, 150);
@@ -144,10 +189,11 @@ export default function TimelineModal({ open, onClose }: TimelineModalProps) {
                   {COLUMN_KEYS.map((key) => {
                     const score = SCORING_DATA[key][hourIdx];
                     const isCurrent = currentHours[key] === hourIdx;
+                    const isPeak = score >= PEAK_THRESHOLD;
                     return (
                       <td
                         key={key}
-                        className="px-2 py-[7px] text-center font-mono text-[11px] border-b border-[#0e0e1a]/40 relative"
+                        className="px-2 py-[5px] text-center font-mono text-[11px] border-b border-[#0e0e1a]/40 relative"
                         style={{
                           background: scoreToBgColor(score, isCurrent ? 0.85 : 0.7),
                         }}
@@ -170,6 +216,11 @@ export default function TimelineModal({ open, onClose }: TimelineModalProps) {
                         >
                           {score.toFixed(2)}
                         </span>
+                        {isPeak && (
+                          <div className="relative z-[1] text-[8px] text-white/50 leading-tight mt-0.5">
+                            🇻🇳{toVietnamTime(key, hourIdx)}
+                          </div>
+                        )}
                       </td>
                     );
                   })}
