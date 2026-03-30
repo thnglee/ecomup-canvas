@@ -141,11 +141,11 @@ export default function DataTableEditor({ component, onClose }: DataTableEditorP
         <div className="flex flex-col gap-3">
           {rows.map((row, ri) => (
             <div key={ri} className="flex flex-col gap-1 p-2 rounded bg-[#0a0a0f] border border-[#2a2a4a]">
-              <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center mb-1">
                 <span className="text-[10px] text-[#555577]">Row {ri + 1}</span>
                 <button
                   onClick={(e) => { e.stopPropagation(); deleteRow(ri); }}
-                  className="text-[#ef4444] hover:text-[#f87171] text-xs px-2 py-0.5 rounded hover:bg-[#ef4444]/10 shrink-0"
+                  className="ml-auto text-[#ef4444]/60 hover:text-[#f87171] hover:bg-[#ef4444]/10 text-xs px-2 py-0.5 rounded shrink-0 transition-colors"
                 >
                   Delete
                 </button>
