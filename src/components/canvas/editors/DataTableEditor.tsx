@@ -144,8 +144,8 @@ export default function DataTableEditor({ component, onClose }: DataTableEditorP
               <div className="flex items-center justify-between mb-1">
                 <span className="text-[10px] text-[#555577]">Row {ri + 1}</span>
                 <button
-                  onClick={() => deleteRow(ri)}
-                  className="text-[#ef4444] hover:text-[#f87171] text-xs"
+                  onClick={(e) => { e.stopPropagation(); deleteRow(ri); }}
+                  className="text-[#ef4444] hover:text-[#f87171] text-xs px-2 py-0.5 rounded hover:bg-[#ef4444]/10 shrink-0"
                 >
                   Delete
                 </button>

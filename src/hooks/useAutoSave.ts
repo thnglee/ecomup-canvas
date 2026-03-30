@@ -105,8 +105,11 @@ async function performSave() {
 export async function forceSave() {
   const state = useCanvasStore.getState();
   if (!state.isLoaded) return;
+  // Temporarily clear editorOpen so performSave doesn't bail out
+  state.setEditorOpen(false);
   state.markDirty();
   await performSave();
+  state.setEditorOpen(true);
 }
 
 export function useAutoSave() {
