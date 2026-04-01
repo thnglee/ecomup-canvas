@@ -271,11 +271,12 @@ function NodeWrapper({
     >
       {/* Component content */}
       <div
-        className={`w-full h-full rounded-lg overflow-hidden transition-shadow duration-150 ${
+        className="w-full h-full rounded-lg overflow-hidden transition-shadow duration-150"
+        style={
           isSelected
-            ? "ring-2 ring-[#3b82f6] shadow-[0_0_0_1px_#3b82f6]"
-            : "hover:shadow-lg hover:shadow-[#3b82f6]/10"
-        }`}
+            ? { outline: "1.5px solid var(--accent)", boxShadow: "0 0 0 3px var(--accent-dim)" }
+            : { outline: "none" }
+        }
       >
         {children}
       </div>
@@ -285,10 +286,11 @@ function NodeWrapper({
         resizeHandles.map((handle) => (
           <div
             key={handle}
-            className="absolute bg-[#3b82f6] rounded-sm z-10 transition-transform duration-100 hover:scale-125"
+            className="absolute rounded-sm z-10 transition-transform duration-100 hover:scale-125"
             style={{
               ...handlePositions[handle],
               cursor: handleCursors[handle],
+              background: "var(--accent)",
             }}
             onMouseDown={(e) => handleResizeStart(e, handle)}
           />

@@ -304,7 +304,7 @@ export default function Canvas() {
           left: sidebarOffset,
           right: 0,
           bottom: STATUSBAR_HEIGHT,
-          background: "#0a0a0f",
+          background: "var(--background)",
           transition: "left 200ms",
         }}
       >
@@ -369,7 +369,16 @@ export default function Canvas() {
       {/* Drag overlay ghost */}
       <DragOverlay>
         {draggingType && (
-          <div className="w-[200px] h-[60px] bg-[#1a1a2e] border border-[#3b82f6] rounded-lg opacity-60 flex items-center justify-center text-xs text-[#e4e4ef]">
+          <div
+            className="w-[180px] h-[52px] rounded-xl flex items-center justify-center text-xs font-medium"
+            style={{
+              background: "var(--surface-raised)",
+              border: "1px solid var(--accent)",
+              color: "var(--foreground)",
+              boxShadow: "0 4px 20px rgba(91,156,246,0.25)",
+              opacity: 0.85,
+            }}
+          >
             {draggingType.replace("_", " ")}
           </div>
         )}

@@ -16,7 +16,6 @@ interface EditorPanelProps {
 export default function EditorPanel({ title, children, onClose, hasChanges, onSave }: EditorPanelProps) {
   const setEditorOpen = useCanvasStore((s) => s.setEditorOpen);
 
-  // Suppress auto-save while editor is open
   useEffect(() => {
     setEditorOpen(true);
     return () => setEditorOpen(false);
@@ -36,25 +35,47 @@ export default function EditorPanel({ title, children, onClose, hasChanges, onSa
 
   return (
     <div
-      className="fixed right-0 z-40 w-[400px] bg-[#12121f] border-l border-[#2a2a4a] flex flex-col overflow-hidden"
-      style={{ top: HEADER_HEIGHT, bottom: STATUSBAR_HEIGHT }}
+      className="fixed right-0 z-40 w-[380px] flex flex-col overflow-hidden"
+      style={{
+        top: HEADER_HEIGHT,
+        bottom: STATUSBAR_HEIGHT,
+        background: "var(--surface)",
+        borderLeft: "1px solid var(--border-subtle)",
+      }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[#2a2a4a] shrink-0">
-        <h3 className="text-sm font-semibold text-[#e4e4ef]">{title}</h3>
+      <div
+        className="flex items-center justify-between px-4 py-3 shrink-0"
+        style={{ borderBottom: "1px solid var(--border-subtle)" }}
+      >
+        <h3
+          className="text-xs font-semibold uppercase tracking-widest"
+          style={{ color: "var(--foreground-muted)", letterSpacing: "0.1em" }}
+        >
+          {title}
+        </h3>
         <button
           onClick={onClose}
-          className="text-[#8888aa] hover:text-[#e4e4ef] transition-colors text-lg leading-none"
+          aria-label="Close editor"
+          className="w-6 h-6 flex items-center justify-center rounded text-lg leading-none transition-colors"
+          style={{ color: "var(--foreground-faint)" }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "var(--foreground)")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "var(--foreground-faint)")}
         >
           ×
         </button>
       </div>
+
       {/* Body */}
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
         {children}
       </div>
+
       {/* Save button */}
-      <div className="px-4 py-3 border-t border-[#2a2a4a] shrink-0">
+      <div
+        className="px-4 py-3 shrink-0"
+        style={{ borderTop: "1px solid var(--border-subtle)" }}
+      >
         <SaveButton hasChanges={hasChanges} onSave={onSave} />
       </div>
     </div>
@@ -63,7 +84,7 @@ export default function EditorPanel({ title, children, onClose, hasChanges, onSa
 
 function SaveButton({ hasChanges, onSave }: { hasChanges: boolean; onSave: () => void }) {
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [saved, setSaved]   = useState(false);
 
   const handleSave = async () => {
     setSaving(true);
@@ -77,36 +98,45 @@ function SaveButton({ hasChanges, onSave }: { hasChanges: boolean; onSave: () =>
 
   const disabled = saving || (!hasChanges && !saved);
 
+  let bg = "var(--accent)";
+  let color = "#fff";
+  let border = "var(--accent)";
+  if (saved) { bg = "rgba(52,196,122,0.12)"; color = "var(--success)"; border = "rgba(52,196,122,0.3)"; }
+  if (saving) { bg = "var(--surface-raised)"; color = "var(--foreground-muted)"; border = "var(--border)"; }
+  if (disabled && !saved) { bg = "var(--surface-raised)"; color = "var(--foreground-faint)"; border = "var(--border)"; }
+
   return (
     <button
       onClick={handleSave}
       disabled={disabled}
-      className={`w-full py-2 px-4 rounded text-sm font-medium transition-all ${
-        saved
-          ? "bg-[#22c55e]/20 text-[#22c55e] border border-[#22c55e]/30"
-          : saving
-            ? "bg-[#3b82f6]/10 text-[#8888aa] border border-[#2a2a4a] cursor-wait"
-            : disabled
-              ? "bg-[#2a2a4a]/50 text-[#555577] border border-[#2a2a4a] cursor-not-allowed"
-              : "bg-[#3b82f6] text-white hover:bg-[#2563eb] border border-[#3b82f6]"
-      }`}
+      className="w-full py-2 px-4 rounded-lg text-xs font-semibold transition-all"
+      style={{ background: bg, color, border: `1px solid ${border}`, cursor: disabled ? "not-allowed" : "pointer" }}
     >
-      {saved ? "Saved!" : saving ? "Saving..." : "Save"}
+      {saved ? "Saved" : saving ? "Saving…" : "Save changes"}
     </button>
   );
 }
 
-// Shared field components
-export function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+/* ── Shared field primitives ── */
+
+const INPUT_BASE: React.CSSProperties = {
+  background: "var(--background)",
+  border: "1px solid var(--border)",
+  color: "var(--foreground)",
+  borderRadius: "var(--radius)",
+  outline: "none",
+  transition: "border-color 150ms",
+};
+
+export function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="flex flex-col gap-1.5">
-      <span className="text-xs font-medium text-[#8888aa]">{label}</span>
+      <span
+        className="text-[10px] font-semibold uppercase tracking-widest"
+        style={{ color: "var(--foreground-faint)", letterSpacing: "0.1em" }}
+      >
+        {label}
+      </span>
       {children}
     </label>
   );
@@ -127,7 +157,10 @@ export function TextInput({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="w-full px-3 py-2 text-sm rounded bg-[#0a0a0f] border border-[#2a2a4a] text-[#e4e4ef] placeholder-[#555577] outline-none focus:border-[#3b82f6] transition-colors"
+      className="w-full px-3 py-2 text-xs"
+      style={INPUT_BASE}
+      onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
+      onBlur={(e) => (e.target.style.borderColor = "var(--border)")}
     />
   );
 }
@@ -149,7 +182,10 @@ export function TextArea({
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       rows={rows || 4}
-      className="w-full px-3 py-2 text-sm rounded bg-[#0a0a0f] border border-[#2a2a4a] text-[#e4e4ef] placeholder-[#555577] outline-none focus:border-[#3b82f6] transition-colors resize-none"
+      className="w-full px-3 py-2 text-xs resize-none"
+      style={INPUT_BASE}
+      onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
+      onBlur={(e) => (e.target.style.borderColor = "var(--border)")}
     />
   );
 }
@@ -167,7 +203,10 @@ export function SelectInput({
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full px-3 py-2 text-sm rounded bg-[#0a0a0f] border border-[#2a2a4a] text-[#e4e4ef] outline-none focus:border-[#3b82f6] transition-colors"
+      className="w-full px-3 py-2 text-xs"
+      style={INPUT_BASE}
+      onFocus={(e) => (e.target.style.borderColor = "var(--accent)")}
+      onBlur={(e) => (e.target.style.borderColor = "var(--border)")}
     >
       {options.map((opt) => (
         <option key={opt.value} value={opt.value}>
@@ -193,11 +232,17 @@ export function ColorPicker({
         <button
           key={c.name}
           onClick={() => onChange(c.name)}
-          className={`w-7 h-7 rounded-full border-2 transition-all ${
-            value === c.name ? "border-[#3b82f6] scale-110" : "border-[#2a2a4a]"
-          }`}
-          style={{ backgroundColor: c.color }}
+          className="w-6 h-6 rounded-full transition-all"
+          style={{
+            backgroundColor: c.color,
+            border: value === c.name
+              ? "2px solid var(--accent)"
+              : "2px solid var(--border)",
+            transform: value === c.name ? "scale(1.15)" : "scale(1)",
+          }}
           title={c.name}
+          aria-label={c.name}
+          aria-pressed={value === c.name}
         />
       ))}
     </div>

@@ -3,14 +3,14 @@
 import type { CanvasComponent } from "@/types/canvas";
 
 const PRESET_ICONS: Record<string, string> = {
-  sheet: "📊",
-  web: "🌐",
-  chat: "💬",
-  folder: "📁",
-  video: "🎬",
-  image: "🖼️",
-  tool: "🔧",
-  ads: "📢",
+  sheet:  "⊞",
+  web:    "↗",
+  chat:   "◷",
+  folder: "◫",
+  video:  "▷",
+  image:  "⊡",
+  tool:   "⚙",
+  ads:    "◈",
 };
 
 interface LinkBoxProps {
@@ -19,8 +19,8 @@ interface LinkBoxProps {
 
 export default function LinkBox({ component }: LinkBoxProps) {
   const { title, description, url, icon, color_accent } = component.data;
-  const displayIcon = PRESET_ICONS[icon] || icon || "🔗";
-  const accent = color_accent || "#3b82f6";
+  const displayIcon = PRESET_ICONS[icon] ?? icon ?? "↗";
+  const accent = (color_accent as string) || "var(--accent)";
 
   const normalizeUrl = (rawUrl: string) => {
     if (/^https?:\/\//i.test(rawUrl)) return rawUrl;
@@ -31,32 +31,75 @@ export default function LinkBox({ component }: LinkBoxProps) {
     if (e.ctrlKey || e.metaKey) {
       e.stopPropagation();
       e.preventDefault();
-      if (url) window.open(normalizeUrl(url), "_blank", "noopener");
+      if (url) window.open(normalizeUrl(url as string), "_blank", "noopener");
     }
   };
 
   return (
     <div
-      className="group w-full h-full bg-[#1a1a2e] border border-[#2a2a4a] rounded-lg flex items-start gap-3 p-3 hover:bg-[#222240] hover:border-[#3a3a5a] transition-colors relative overflow-hidden"
-      style={{ borderLeftColor: accent, borderLeftWidth: 3 }}
+      className="group w-full h-full flex items-start gap-3 p-3 relative overflow-hidden transition-colors"
+      style={{
+        background: "var(--surface-raised)",
+        border: "1px solid var(--border)",
+        borderRadius: "var(--radius)",
+        borderLeftColor: accent,
+        borderLeftWidth: 2,
+      }}
       onClick={handleCtrlClick}
-      title={url}
+      title={url as string | undefined}
+      onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "var(--surface-hover)")}
+      onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = "var(--surface-raised)")}
     >
-      <span className="text-lg shrink-0 select-none">{displayIcon}</span>
+      {/* Icon */}
+      <span
+        className="text-sm shrink-0 select-none w-7 h-7 flex items-center justify-center rounded-md font-semibold"
+        style={{ background: "var(--surface)", color: accent, border: "1px solid var(--border)" }}
+        aria-hidden="true"
+      >
+        {displayIcon}
+      </span>
+
+      {/* Text */}
       <div className="min-w-0 flex-1">
-        <div className="text-sm font-semibold text-[#e4e4ef] truncate">{title || "Untitled"}</div>
+        <div
+          className="text-xs font-semibold truncate leading-snug"
+          style={{ color: "var(--foreground)" }}
+        >
+          {(title as string) || "Untitled"}
+        </div>
         {description && (
-          <div className="text-xs text-[#8888aa] mt-1 line-clamp-2">{description}</div>
+          <div
+            className="text-[10px] mt-0.5 line-clamp-2 leading-snug"
+            style={{ color: "var(--foreground-muted)" }}
+          >
+            {description as string}
+          </div>
         )}
       </div>
+
+      {/* Open link */}
       {url && (
         <a
-          href={normalizeUrl(url)}
+          href={normalizeUrl(url as string)}
           target="_blank"
           rel="noopener noreferrer"
-          className="shrink-0 self-center w-7 h-7 flex items-center justify-center rounded-md bg-[#3b82f6]/20 text-[#3b82f6] hover:bg-[#3b82f6]/40 hover:text-white hover:shadow-[0_0_8px_rgba(59,130,246,0.5)] cursor-pointer transition-all text-sm font-bold"
+          className="shrink-0 self-center w-6 h-6 flex items-center justify-center rounded-md text-xs font-bold transition-all"
+          style={{
+            background: "var(--accent-dim)",
+            color: "var(--accent)",
+            border: "1px solid rgba(91,156,246,0.2)",
+          }}
           onClick={(e) => e.stopPropagation()}
           title={`Open ${url}`}
+          aria-label={`Open ${title || url}`}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLElement).style.background = "var(--accent)";
+            (e.currentTarget as HTMLElement).style.color = "#fff";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLElement).style.background = "var(--accent-dim)";
+            (e.currentTarget as HTMLElement).style.color = "var(--accent)";
+          }}
         >
           ↗
         </a>

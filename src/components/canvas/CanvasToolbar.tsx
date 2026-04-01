@@ -9,18 +9,12 @@ function exportCanvasData() {
   const exportData = {
     version: 1,
     exported_at: new Date().toISOString(),
-    canvas_state: {
-      viewport: state.viewport,
-      snap_to_grid: state.snapToGrid,
-    },
+    canvas_state: { viewport: state.viewport, snap_to_grid: state.snapToGrid },
     components: Object.values(state.components),
     zones: Object.values(state.zones),
     connectors: Object.values(state.connectors),
   };
-
-  const blob = new Blob([JSON.stringify(exportData, null, 2)], {
-    type: "application/json",
-  });
+  const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -29,44 +23,70 @@ function exportCanvasData() {
   URL.revokeObjectURL(url);
 }
 
+const TOOLS: { tool: ActiveTool; label: string; icon: string }[] = [
+  { tool: "select",    label: "Select",    icon: "↖" },
+  { tool: "connector", label: "Connector", icon: "⤳" },
+  { tool: "zone",      label: "Zone",      icon: "▢" },
+];
+
 export default function CanvasToolbar() {
   const activeTool = useCanvasStore((s) => s.activeTool);
   const setActiveTool = useCanvasStore((s) => s.setActiveTool);
-
   const handleExport = useCallback(() => exportCanvasData(), []);
 
-  const tools: { tool: ActiveTool; label: string; icon: string }[] = [
-    { tool: "select", label: "Select", icon: "↖" },
-    { tool: "connector", label: "Connector", icon: "↗" },
-    { tool: "zone", label: "Add Zone", icon: "▢" },
-  ];
-
   return (
-    <div className="absolute top-2 left-1/2 -translate-x-1/2 z-40 flex items-center gap-0.5 bg-[#1a1a2e] border border-[#2a2a4a] rounded-lg px-1 py-1 shadow-xl">
-      {tools.map(({ tool, label, icon }) => (
-        <button
-          key={tool}
-          onClick={() => setActiveTool(tool)}
-          className={`px-3 py-1.5 text-xs rounded transition-colors flex items-center gap-1.5 ${
-            activeTool === tool
-              ? "bg-[#3b82f6] text-white"
-              : "text-[#8888aa] hover:text-[#e4e4ef] hover:bg-[#222240]"
-          }`}
-          title={label}
-        >
-          <span className="text-sm">{icon}</span>
-          {label}
-        </button>
-      ))}
+    <div
+      className="absolute top-3 left-1/2 -translate-x-1/2 z-40 flex items-center gap-0.5 px-1 py-1 rounded-xl shadow-2xl"
+      style={{
+        background: "var(--surface)",
+        border: "1px solid var(--border)",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.45)",
+      }}
+      role="toolbar"
+      aria-label="Canvas tools"
+    >
+      {TOOLS.map(({ tool, label, icon }) => {
+        const isActive = activeTool === tool;
+        return (
+          <button
+            key={tool}
+            onClick={() => setActiveTool(tool)}
+            title={label}
+            aria-pressed={isActive}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all"
+            style={{
+              background: isActive ? "var(--accent)" : "transparent",
+              color: isActive ? "#fff" : "var(--foreground-muted)",
+            }}
+            onMouseEnter={(e) => {
+              if (!isActive) (e.currentTarget as HTMLElement).style.color = "var(--foreground)";
+            }}
+            onMouseLeave={(e) => {
+              if (!isActive) (e.currentTarget as HTMLElement).style.color = "var(--foreground-muted)";
+            }}
+          >
+            <span className="text-sm leading-none" aria-hidden="true">{icon}</span>
+            {label}
+          </button>
+        );
+      })}
 
-      <div className="w-px h-5 bg-[#2a2a4a] mx-0.5" />
+      {/* Divider */}
+      <div
+        className="w-px mx-0.5 self-stretch"
+        style={{ background: "var(--border)" }}
+        aria-hidden="true"
+      />
 
       <button
         onClick={handleExport}
-        className="px-3 py-1.5 text-xs rounded transition-colors flex items-center gap-1.5 text-[#8888aa] hover:text-[#e4e4ef] hover:bg-[#222240]"
         title="Export canvas as JSON"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all"
+        style={{ color: "var(--foreground-muted)" }}
+        onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.color = "var(--foreground)"}
+        onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.color = "var(--foreground-muted)"}
       >
-        <span className="text-sm">↓</span>
+        <span className="text-sm leading-none" aria-hidden="true">↓</span>
         Export
       </button>
     </div>

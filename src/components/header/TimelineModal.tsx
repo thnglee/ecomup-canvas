@@ -17,27 +17,24 @@ interface TimelineModalProps {
   onClose: () => void;
 }
 
-const COLUMN_KEYS = ["US", "UK", "Australia", "Canada", "New_Zealand", "Germany"];
+const COLUMN_KEYS   = ["US", "UK", "Australia", "Canada", "New_Zealand", "Germany"];
 const COLUMN_LABELS = ["US", "UK", "Australia", "Canada", "NZ", "Germany"];
 
 const PEAK_THRESHOLD = 0.75;
 
-// Country timezone lookup (from CLOCKS)
 const COUNTRY_TZ: Record<string, string> = {
-  US: "America/New_York",
-  UK: "Europe/London",
-  Australia: "Australia/Sydney",
-  Canada: "America/Toronto",
+  US:          "America/New_York",
+  UK:          "Europe/London",
+  Australia:   "Australia/Sydney",
+  Canada:      "America/Toronto",
   New_Zealand: "Pacific/Auckland",
-  Germany: "Europe/Berlin",
+  Germany:     "Europe/Berlin",
 };
 const VN_TZ = "Asia/Ho_Chi_Minh";
 
-/** Convert a local hour (0-23) in a country's timezone to Vietnam time label */
 function toVietnamTime(countryKey: string, localHour: number): string {
   const tz = COUNTRY_TZ[countryKey];
   if (!tz) return "";
-  // Use a reference date and compute offsets via Intl
   const ref = new Date();
   const getOffset = (timezone: string) => {
     const parts = new Intl.DateTimeFormat("en-US", {
@@ -50,34 +47,29 @@ function toVietnamTime(countryKey: string, localHour: number): string {
     const m = parseInt(parts.find((p) => p.type === "minute")!.value, 10);
     return h * 60 + m;
   };
-  const countryNow = getOffset(tz);
-  const vnNow = getOffset(VN_TZ);
+  const countryNow  = getOffset(tz);
+  const vnNow       = getOffset(VN_TZ);
   const diffMinutes = vnNow - countryNow;
   const vnHour = ((localHour * 60 + diffMinutes) / 60 + 24) % 24;
-  const h = Math.floor(vnHour);
+  const h      = Math.floor(vnHour);
   const suffix = h < 12 ? "AM" : "PM";
-  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  const h12    = h === 0 ? 12 : h > 12 ? h - 12 : h;
   return `${h12}${suffix}`;
 }
 
 export default function TimelineModal({ open, onClose }: TimelineModalProps) {
   const [currentHours, setCurrentHours] = useState<Record<string, number>>({});
-  const tableRef = useRef<HTMLDivElement>(null);
+  const tableRef   = useRef<HTMLDivElement>(null);
   const hasScrolled = useRef(false);
 
   useEffect(() => {
-    if (!open) {
-      hasScrolled.current = false;
-      return;
-    }
+    if (!open) { hasScrolled.current = false; return; }
     const update = () => {
       const d = new Date();
       const hours: Record<string, number> = {};
       CLOCKS.forEach((clock) => {
         const key = COUNTRY_TO_SCORING_KEY[clock.country];
-        if (key) {
-          hours[key] = getCurrentHour(clock.timezone, d);
-        }
+        if (key) hours[key] = getCurrentHour(clock.timezone, d);
       });
       setCurrentHours(hours);
     };
@@ -93,10 +85,7 @@ export default function TimelineModal({ open, onClose }: TimelineModalProps) {
       const hour = currentHours[firstKey];
       if (hour !== undefined && tableRef.current) {
         const row = tableRef.current.querySelector(`[data-hour="${hour}"]`);
-        if (row) {
-          row.scrollIntoView({ block: "center", behavior: "smooth" });
-          hasScrolled.current = true;
-        }
+        if (row) { row.scrollIntoView({ block: "center", behavior: "smooth" }); hasScrolled.current = true; }
       }
     }, 150);
     return () => clearTimeout(timeout);
@@ -108,50 +97,88 @@ export default function TimelineModal({ open, onClose }: TimelineModalProps) {
     <div
       className="fixed inset-0 z-[9999] flex items-center justify-center"
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Purchase Likelihood Timeline"
     >
-      <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" />
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
 
+      {/* Panel */}
       <div
-        className="relative bg-[#0e0e1a] border border-[#2a2a4a] rounded-2xl shadow-2xl max-w-[920px] w-[95vw] max-h-[85vh] flex flex-col overflow-hidden"
+        className="relative max-w-[940px] w-[95vw] max-h-[85vh] flex flex-col overflow-hidden rounded-2xl shadow-2xl"
+        style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          boxShadow: "0 24px 64px rgba(0,0,0,0.7)",
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#2a2a4a]/60">
+        <div
+          className="flex items-center justify-between px-6 py-4 shrink-0"
+          style={{ borderBottom: "1px solid var(--border-subtle)" }}
+        >
           <div>
-            <h2 className="text-[#e4e4ef] text-base font-semibold tracking-tight">
+            <h2
+              className="text-sm font-semibold"
+              style={{ color: "var(--foreground)" }}
+            >
               Purchase Likelihood Timeline
             </h2>
-            <p className="text-[#555577] text-xs mt-0.5">
-              Score indicates probability of customer purchase by local hour
+            <p
+              className="text-[11px] mt-0.5"
+              style={{ color: "var(--foreground-faint)" }}
+            >
+              Probability of customer purchase by local hour
             </p>
           </div>
           <button
             onClick={onClose}
-            className="text-[#555577] hover:text-[#e4e4ef] transition-colors text-sm w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[#1a1a2e]"
+            aria-label="Close"
+            className="w-7 h-7 flex items-center justify-center rounded-lg text-sm transition-colors"
+            style={{ color: "var(--foreground-faint)" }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.background = "var(--surface-raised)";
+              (e.currentTarget as HTMLElement).style.color = "var(--foreground)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.background = "transparent";
+              (e.currentTarget as HTMLElement).style.color = "var(--foreground-faint)";
+            }}
           >
             ✕
           </button>
         </div>
 
         {/* Legend */}
-        <div className="flex items-center gap-5 px-6 py-2 border-b border-[#2a2a4a]/30 bg-[#0c0c16]">
-          <span className="text-[#555577] text-[11px]">Scale:</span>
+        <div
+          className="flex items-center gap-4 px-6 py-2 shrink-0"
+          style={{ borderBottom: "1px solid var(--border-subtle)", background: "var(--surface-raised)" }}
+        >
+          <span className="text-[10px]" style={{ color: "var(--foreground-faint)" }}>
+            Score
+          </span>
           <div className="flex items-center gap-0.5">
             {[0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1.0].map((s) => (
               <div
                 key={s}
-                className="w-6 h-3 first:rounded-l-sm last:rounded-r-sm"
-                style={{ background: scoreToBgColor(s, 0.7) }}
+                className="w-5 h-2.5 first:rounded-l-sm last:rounded-r-sm"
+                style={{ background: scoreToBgColor(s, 0.75) }}
               />
             ))}
-            <span className="text-[#555577] text-[10px] ml-2">Low → High</span>
+            <span className="text-[9px] ml-2" style={{ color: "var(--foreground-faint)" }}>
+              Low → High
+            </span>
           </div>
           <div className="ml-auto flex items-center gap-1.5">
             <div
-              className="w-4 h-4 rounded border-2 border-white/80"
-              style={{ boxShadow: "0 0 8px rgba(255,255,255,0.4)" }}
+              className="w-3.5 h-3.5 rounded border-[1.5px]"
+              style={{ borderColor: "var(--foreground)", boxShadow: "0 0 6px rgba(255,255,255,0.3)" }}
             />
-            <span className="text-[#555577] text-[10px]">Now</span>
+            <span className="text-[10px]" style={{ color: "var(--foreground-faint)" }}>
+              Now
+            </span>
           </div>
         </div>
 
@@ -159,21 +186,33 @@ export default function TimelineModal({ open, onClose }: TimelineModalProps) {
         <div ref={tableRef} className="overflow-auto flex-1">
           <table className="w-full border-collapse text-xs">
             <thead className="sticky top-0 z-10">
-              <tr className="bg-[#0e0e1a]">
-                <th className="text-left text-[#8888aa] font-medium text-[11px] px-4 py-2.5 border-b border-[#2a2a4a]/60 min-w-[88px] bg-[#0e0e1a]">
+              <tr style={{ background: "var(--surface)" }}>
+                <th
+                  className="text-left text-[10px] font-semibold uppercase tracking-widest px-4 py-2.5 min-w-[88px]"
+                  style={{
+                    background: "var(--surface)",
+                    borderBottom: "1px solid var(--border)",
+                    color: "var(--foreground-faint)",
+                    letterSpacing: "0.1em",
+                  }}
+                >
                   Hour
                 </th>
                 {COLUMN_LABELS.map((label, i) => {
-                  const key = COLUMN_KEYS[i];
-                  const clock = CLOCKS.find(
-                    (c) => COUNTRY_TO_SCORING_KEY[c.country] === key
-                  );
+                  const key   = COLUMN_KEYS[i];
+                  const clock = CLOCKS.find((c) => COUNTRY_TO_SCORING_KEY[c.country] === key);
                   return (
                     <th
                       key={key}
-                      className="text-center text-[#8888aa] font-medium text-[11px] px-2 py-2.5 border-b border-[#2a2a4a]/60 min-w-[85px] bg-[#0e0e1a]"
+                      className="text-center text-[10px] font-semibold uppercase tracking-widest px-2 py-2.5 min-w-[85px]"
+                      style={{
+                        background: "var(--surface)",
+                        borderBottom: "1px solid var(--border)",
+                        color: "var(--foreground-faint)",
+                        letterSpacing: "0.1em",
+                      }}
                     >
-                      <span className="mr-1">{clock?.flag}</span>
+                      <span className="mr-1" aria-hidden="true">{clock?.flag}</span>
                       {label}
                     </th>
                   );
@@ -183,42 +222,52 @@ export default function TimelineModal({ open, onClose }: TimelineModalProps) {
             <tbody>
               {SCORING_HOURS.map((hourLabel, hourIdx) => (
                 <tr key={hourIdx} data-hour={hourIdx}>
-                  <td className="px-4 py-[7px] text-[#6a6a88] font-mono text-[11px] border-b border-[#1a1a2e]/60 whitespace-nowrap bg-[#0e0e1a]">
+                  <td
+                    className="px-4 py-[6px] font-mono text-[10px] whitespace-nowrap"
+                    style={{
+                      background: "var(--surface)",
+                      borderBottom: "1px solid var(--border-subtle)",
+                      color: "var(--foreground-muted)",
+                    }}
+                  >
                     {hourLabel}
                   </td>
                   {COLUMN_KEYS.map((key) => {
-                    const score = SCORING_DATA[key][hourIdx];
+                    const score     = SCORING_DATA[key][hourIdx];
                     const isCurrent = currentHours[key] === hourIdx;
-                    const isPeak = score >= PEAK_THRESHOLD;
+                    const isPeak    = score >= PEAK_THRESHOLD;
                     return (
                       <td
                         key={key}
-                        className="px-2 py-[5px] text-center font-mono text-[11px] border-b border-[#0e0e1a]/40 relative"
+                        className="px-2 py-[5px] text-center font-mono text-[10px] relative"
                         style={{
-                          background: scoreToBgColor(score, isCurrent ? 0.85 : 0.7),
+                          background: scoreToBgColor(score, isCurrent ? 0.9 : 0.7),
+                          borderBottom: "1px solid rgba(0,0,0,0.12)",
                         }}
                       >
                         {isCurrent && (
                           <div
-                            className="absolute inset-0 border-2 border-white/90 rounded-[3px] pointer-events-none z-[2]"
+                            className="absolute inset-0 pointer-events-none z-[2] rounded-[2px]"
                             style={{
+                              border: "1.5px solid rgba(255,255,255,0.85)",
                               boxShadow: scoreToGlowShadow(score),
                               animation: "cellGlow 2s ease-in-out infinite",
                             }}
                           />
                         )}
                         <span
-                          className={`relative z-[1] ${
-                            isCurrent
-                              ? "font-bold text-[12px] text-white"
-                              : "text-white/90"
-                          }`}
+                          className="relative z-[1]"
+                          style={{
+                            color: "#fff",
+                            fontWeight: isCurrent ? 700 : 400,
+                            fontSize: isCurrent ? 11 : 10,
+                          }}
                         >
                           {score.toFixed(2)}
                         </span>
                         {isPeak && (
-                          <div className="relative z-[1] text-[8px] text-white/50 leading-tight mt-0.5">
-                            🇻🇳{toVietnamTime(key, hourIdx)}
+                          <div className="relative z-[1] text-[8px] leading-tight mt-0.5" style={{ color: "rgba(255,255,255,0.55)" }}>
+                            VN {toVietnamTime(key, hourIdx)}
                           </div>
                         )}
                       </td>
@@ -230,18 +279,21 @@ export default function TimelineModal({ open, onClose }: TimelineModalProps) {
           </table>
         </div>
 
-        {/* Footer */}
-        <div className="px-6 py-3 border-t border-[#2a2a4a]/60 bg-[#0c0c16] flex flex-wrap gap-4">
+        {/* Footer — current scores */}
+        <div
+          className="px-6 py-3 flex flex-wrap gap-4 shrink-0"
+          style={{ borderTop: "1px solid var(--border-subtle)", background: "var(--surface-raised)" }}
+        >
           {CLOCKS.map((clock) => {
-            const key = COUNTRY_TO_SCORING_KEY[clock.country];
+            const key   = COUNTRY_TO_SCORING_KEY[clock.country];
             if (!key) return null;
-            const hour = currentHours[key];
+            const hour  = currentHours[key];
             const score = hour !== undefined ? SCORING_DATA[key][hour] : null;
             if (score === null) return null;
             return (
-              <div key={clock.country} className="flex items-center gap-1.5 text-xs">
-                <span>{clock.flag}</span>
-                <span className="text-[#6a6a88]">{clock.country}</span>
+              <div key={clock.country} className="flex items-center gap-1.5 text-[11px]">
+                <span aria-hidden="true">{clock.flag}</span>
+                <span style={{ color: "var(--foreground-muted)" }}>{clock.country}</span>
                 <span
                   className="font-mono font-bold text-[12px]"
                   style={{ color: scoreToColor(score) }}
@@ -253,13 +305,6 @@ export default function TimelineModal({ open, onClose }: TimelineModalProps) {
           })}
         </div>
       </div>
-
-      <style jsx global>{`
-        @keyframes cellGlow {
-          0%, 100% { box-shadow: 0 0 16px rgba(255,255,255,0.4), inset 0 0 10px rgba(255,255,255,0.1); }
-          50% { box-shadow: 0 0 24px rgba(255,255,255,0.6), inset 0 0 14px rgba(255,255,255,0.2); }
-        }
-      `}</style>
     </div>
   );
 }
