@@ -9,23 +9,27 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        canvas: {
-          bg: "#0a0a0f",
-          card: "#1a1a2e",
-          "card-hover": "#222240",
-          sidebar: "#12121f",
-          header: "#0d0d18",
-          border: "#2a2a4a",
-        },
-        text: {
-          primary: "#e4e4ef",
-          secondary: "#8888aa",
-          muted: "#555577",
-        },
+        background:       "var(--background)",
+        surface:          "var(--surface)",
+        "surface-raised": "var(--surface-raised)",
+        "surface-hover":  "var(--surface-hover)",
+        border:           "var(--border)",
+        "border-subtle":  "var(--border-subtle)",
+        foreground:       "var(--foreground)",
+        "fg-muted":       "var(--foreground-muted)",
+        "fg-faint":       "var(--foreground-faint)",
+        accent:           "var(--accent)",
+        "accent-dim":     "var(--accent-dim)",
+        success:          "var(--success)",
+        warning:          "var(--warning)",
+        danger:           "var(--danger)",
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
-        mono: ["JetBrains Mono", "Fira Code", "monospace"],
+        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+        mono: ["var(--font-mono)", "JetBrains Mono", "monospace"],
+      },
+      borderRadius: {
+        DEFAULT: "var(--radius)",
       },
     },
   },

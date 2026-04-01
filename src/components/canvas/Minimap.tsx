@@ -134,19 +134,24 @@ export default function Minimap({ containerRef }: MinimapProps) {
       {/* Collapse button */}
       <button
         onClick={() => setMinimapVisible(false)}
-        className="absolute -top-6 right-0 text-[10px] text-[#555577] hover:text-[#8888aa] transition-colors"
+        className="absolute -top-5 right-0 text-[9px] font-medium transition-colors"
+        style={{ color: "var(--foreground-faint)" }}
         title="Hide minimap"
+        onMouseEnter={(e) => (e.currentTarget.style.color = "var(--foreground-muted)")}
+        onMouseLeave={(e) => (e.currentTarget.style.color = "var(--foreground-faint)")}
       >
         Hide
       </button>
 
       <div
         ref={minimapRef}
-        className="rounded-lg border border-[#2a2a4a] overflow-hidden"
+        className="rounded-xl overflow-hidden"
         style={{
           width: MINIMAP_WIDTH,
           height: MINIMAP_HEIGHT,
-          background: "rgba(13, 13, 24, 0.9)",
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
           cursor: isDragging ? "grabbing" : "pointer",
         }}
         onMouseDown={handleMouseDown}
@@ -195,13 +200,14 @@ export default function Minimap({ containerRef }: MinimapProps) {
 
         {/* Viewport rectangle */}
         <div
-          className="absolute border-2 border-white/40 rounded-sm pointer-events-none"
+          className="absolute rounded-sm pointer-events-none"
           style={{
             left: vpMinimap.x,
             top: vpMinimap.y,
             width: vpW,
             height: vpH,
-            background: "rgba(255, 255, 255, 0.05)",
+            border: "1.5px solid var(--accent)",
+            background: "var(--accent-dim)",
           }}
         />
       </div>

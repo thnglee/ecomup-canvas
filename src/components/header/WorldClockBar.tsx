@@ -24,12 +24,20 @@ function formatTime(timezone: string, date: Date): string {
   }).format(date);
 }
 
+/** Map a 0–1 score to a very subtle background tint on the dark surface */
+function scoreChipStyle(score: number | null): React.CSSProperties {
+  if (score === null) return {};
+  // High score → faint green tint; low → faint red tint; mid → neutral
+  if (score >= 0.7) return { background: "rgba(52, 196, 122, 0.08)", borderColor: "rgba(52, 196, 122, 0.22)" };
+  if (score >= 0.4) return { background: "rgba(91, 156, 246, 0.06)", borderColor: "rgba(91, 156, 246, 0.18)" };
+  return { background: "rgba(240, 96, 96, 0.06)", borderColor: "rgba(240, 96, 96, 0.16)" };
+}
+
 export default function WorldClockBar() {
   const [now, setNow] = useState<Date | null>(null);
   const [temps, setTemps] = useState<Record<string, TempData>>({});
   const [modalOpen, setModalOpen] = useState(false);
 
-  // Fetch temperatures from Open-Meteo (free, no API key needed)
   const fetchTemps = useCallback(async () => {
     try {
       const results = await Promise.allSettled(
@@ -46,7 +54,6 @@ export default function WorldClockBar() {
           };
         })
       );
-
       const tempMap: Record<string, TempData> = {};
       results.forEach((r) => {
         if (r.status === "fulfilled") {
@@ -55,7 +62,7 @@ export default function WorldClockBar() {
       });
       setTemps(tempMap);
     } catch {
-      // Silently fail — temps are a nice-to-have
+      // silently ignore
     }
   }, []);
 
@@ -74,53 +81,104 @@ export default function WorldClockBar() {
   return (
     <>
       <header
-        className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center gap-4 px-4 bg-[#0d0d18] border-b border-[#2a2a4a] select-none"
-        style={{ height: HEADER_HEIGHT }}
+        className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center gap-1.5 px-3 select-none"
+        style={{
+          height: HEADER_HEIGHT,
+          background: "var(--surface)",
+          borderBottom: "1px solid var(--border-subtle)",
+        }}
       >
+        {/* Brand mark */}
+        <div className="absolute left-4 flex items-center gap-2">
+          <div
+            className="w-5 h-5 rounded-[4px] flex items-center justify-center text-[9px] font-bold"
+            style={{ background: "var(--accent)", color: "#fff" }}
+          >
+            EC
+          </div>
+          <span
+            className="text-[11px] font-semibold tracking-widest uppercase"
+            style={{ color: "var(--foreground-muted)", letterSpacing: "0.12em" }}
+          >
+            EcomUp
+          </span>
+        </div>
+
+        {/* Clock chips */}
         {CLOCKS.map((clock) => {
           const temp = temps[clock.timezone];
-          // Use the same `now` for display and scoring to guarantee consistency
           const hour = now ? getCurrentHour(clock.timezone, now) : null;
           const score = hour !== null ? getScore(clock.country, hour) : null;
-          const nextScore = hour !== null ? getScore(clock.country, (hour + 1) % 24) : null;
-          const bgStyle = score !== null ? scoreToBarBg(score) : "transparent";
-          const trend = score !== null && nextScore !== null
-            ? nextScore > score ? "up" : nextScore < score ? "down" : "flat"
-            : null;
+          const nextScore =
+            hour !== null ? getScore(clock.country, (hour + 1) % 24) : null;
+          const trend =
+            score !== null && nextScore !== null
+              ? nextScore > score
+                ? "up"
+                : nextScore < score
+                  ? "down"
+                  : "flat"
+              : null;
+          const chipStyle = scoreChipStyle(score);
 
           return (
-            <div
+            <button
               key={clock.timezone}
-              className="flex items-center gap-1.5 text-xs whitespace-nowrap cursor-pointer rounded-md px-2 py-1 transition-all hover:brightness-125"
-              style={{ background: bgStyle }}
               onClick={() => setModalOpen(true)}
-              title={
-                score !== null
-                  ? `Purchase likelihood: ${(score * 100).toFixed(0)}%`
-                  : undefined
-              }
+              className="flex items-center gap-2 px-2.5 py-1 rounded-lg border text-left transition-all hover:brightness-125 group"
+              style={chipStyle}
+              title={score !== null ? `Purchase likelihood: ${(score * 100).toFixed(0)}%` : undefined}
             >
-              <span style={{ filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.5))" }}>{clock.flag}</span>
-              <div className="flex flex-col leading-tight" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.7)" }}>
-                <div className="flex items-center gap-1">
-                  <span className="text-white/90">{clock.country}</span>
-                  <span className="font-mono w-[88px] font-bold text-white">
+              <span className="text-sm leading-none" aria-hidden="true">
+                {clock.flag}
+              </span>
+              <div className="flex flex-col leading-tight">
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className="text-[11px] font-medium"
+                    style={{ color: "var(--foreground-muted)" }}
+                  >
+                    {clock.country}
+                  </span>
+                  <span
+                    className="font-mono text-[11px] font-semibold tabular-nums"
+                    style={{ color: "var(--foreground)" }}
+                  >
                     {now ? formatTime(clock.timezone, now) : "--:--:-- --"}
                   </span>
                 </div>
-                <span className="text-[10px] text-white/70">
-                  {temp ? `${temp.min}°–${temp.max}°C` : "…"}
+                <span
+                  className="text-[9px] tabular-nums"
+                  style={{ color: "var(--foreground-faint)" }}
+                >
+                  {temp ? `${temp.min}°–${temp.max}°C` : "·"}
                 </span>
               </div>
               {score !== null && (
-                <span className="text-[10px] font-mono font-semibold text-white/90 flex items-center gap-0.5 self-end ml-auto" style={{ textShadow: "0 1px 3px rgba(0,0,0,0.7)" }}>
+                <span
+                  className="text-[10px] font-mono font-bold flex items-center gap-0.5 ml-1"
+                  style={{
+                    color:
+                      score >= 0.7
+                        ? "var(--success)"
+                        : score >= 0.4
+                          ? "var(--accent)"
+                          : "var(--danger)",
+                  }}
+                >
                   {score.toFixed(2)}
-                  {trend === "up" && <span className="text-green-300">▲</span>}
-                  {trend === "down" && <span className="text-red-300">▼</span>}
-                  {trend === "flat" && <span className="text-white/50">▸</span>}
+                  {trend === "up" && (
+                    <span style={{ color: "var(--success)" }}>▲</span>
+                  )}
+                  {trend === "down" && (
+                    <span style={{ color: "var(--danger)" }}>▼</span>
+                  )}
+                  {trend === "flat" && (
+                    <span style={{ color: "var(--foreground-faint)" }}>▸</span>
+                  )}
                 </span>
               )}
-            </div>
+            </button>
           );
         })}
       </header>

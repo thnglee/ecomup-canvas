@@ -12,27 +12,27 @@ export const STATUSBAR_HEIGHT = 32;
 
 export const COLORS = {
   bg: {
-    primary: "#0a0a0f",
-    card: "#1a1a2e",
-    cardHover: "#222240",
-    sidebar: "#12121f",
-    header: "#0d0d18",
+    primary:   "#0c0c10",
+    card:      "#131318",
+    cardHover: "#22222c",
+    sidebar:   "#131318",
+    header:    "#131318",
   },
-  border: "#2a2a4a",
+  border: "#252530",
   text: {
-    primary: "#e4e4ef",
-    secondary: "#8888aa",
-    muted: "#555577",
+    primary:   "#ededf5",
+    secondary: "#7878a0",
+    muted:     "#3e3e58",
   },
   accent: {
-    blue: "#3b82f6",
-    green: "#22c55e",
-    red: "#ef4444",
-    yellow: "#eab308",
+    blue:   "#5b9cf6",
+    green:  "#34c47a",
+    red:    "#f06060",
+    yellow: "#e0b94a",
   },
   grid: {
-    dot: "#ffffff0a",
-    bg: "transparent",
+    dot: "rgba(255,255,255,0.035)",
+    bg:  "transparent",
   },
 } as const;
 
