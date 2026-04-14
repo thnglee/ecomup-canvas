@@ -37,11 +37,11 @@ export const COLORS = {
 } as const;
 
 export const CLOCKS = [
-  { country: "Vietnam", timezone: "Asia/Ho_Chi_Minh", flag: "\u{1F1FB}\u{1F1F3}", lat: 10.82, lon: 106.63 },
-  { country: "UK", timezone: "Europe/London", flag: "\u{1F1EC}\u{1F1E7}", lat: 51.51, lon: -0.13 },
-  { country: "US", timezone: "America/New_York", flag: "\u{1F1FA}\u{1F1F8}", lat: 40.71, lon: -74.01 },
-  { country: "Australia", timezone: "Australia/Sydney", flag: "\u{1F1E6}\u{1F1FA}", lat: -33.87, lon: 151.21 },
-  { country: "Canada", timezone: "America/Toronto", flag: "\u{1F1E8}\u{1F1E6}", lat: 43.65, lon: -79.38 },
-  { country: "NZ", timezone: "Pacific/Auckland", flag: "\u{1F1F3}\u{1F1FF}", lat: -36.85, lon: 174.76 },
-  { country: "Germany", timezone: "Europe/Berlin", flag: "\u{1F1E9}\u{1F1EA}", lat: 52.52, lon: 13.41 },
+  { country: "Vietnam", timezone: "Asia/Ho_Chi_Minh", flag: "\u{1F1FB}\u{1F1F3}", lat: 10.82, lon: 106.63, iso: "704" },
+  { country: "UK", timezone: "Europe/London", flag: "\u{1F1EC}\u{1F1E7}", lat: 51.51, lon: -0.13, iso: "826" },
+  { country: "US", timezone: "America/New_York", flag: "\u{1F1FA}\u{1F1F8}", lat: 40.71, lon: -74.01, iso: "840" },
+  { country: "Australia", timezone: "Australia/Sydney", flag: "\u{1F1E6}\u{1F1FA}", lat: -33.87, lon: 151.21, iso: "036" },
+  { country: "Canada", timezone: "America/Toronto", flag: "\u{1F1E8}\u{1F1E6}", lat: 43.65, lon: -79.38, iso: "124" },
+  { country: "NZ", timezone: "Pacific/Auckland", flag: "\u{1F1F3}\u{1F1FF}", lat: -36.85, lon: 174.76, iso: "554" },
+  { country: "Germany", timezone: "Europe/Berlin", flag: "\u{1F1E9}\u{1F1EA}", lat: 52.52, lon: 13.41, iso: "276" },
 ] as const;

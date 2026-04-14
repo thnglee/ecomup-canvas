@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import { CLOCKS, HEADER_HEIGHT } from "@/lib/constants";
 import {
   getScore,
@@ -77,6 +78,7 @@ export default function WorldClockBar() {
         className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center gap-4 px-4 bg-[#0d0d18] border-b border-[#2a2a4a] select-none"
         style={{ height: HEADER_HEIGHT }}
       >
+        <div className="flex items-center gap-4 flex-1 justify-center">
         {CLOCKS.map((clock) => {
           const temp = temps[clock.timezone];
           // Use the same `now` for display and scoring to guarantee consistency
@@ -123,6 +125,15 @@ export default function WorldClockBar() {
             </div>
           );
         })}
+        </div>
+        <Link
+          href="/map"
+          title="Open timezone map"
+          className="ml-2 flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs text-white/80 hover:text-white bg-[#12121f] hover:bg-[#1a1a2e] border border-[#2a2a4a] transition-colors whitespace-nowrap"
+        >
+          <span aria-hidden>🗺️</span>
+          <span>Map</span>
+        </Link>
       </header>
 
       <TimelineModal open={modalOpen} onClose={() => setModalOpen(false)} />
