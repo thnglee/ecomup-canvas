@@ -9,7 +9,6 @@ import { STATUSBAR_HEIGHT } from "@/lib/constants";
 
 export default function StatusBar() {
   const zoom = useCanvasStore((s) => s.viewport.zoom);
-  const setViewport = useCanvasStore((s) => s.setViewport);
   const snapToGrid = useCanvasStore((s) => s.snapToGrid);
   const setSnapToGrid = useCanvasStore((s) => s.setSnapToGrid);
   const saveStatus = useCanvasStore((s) => s.saveStatus);
@@ -24,10 +23,6 @@ export default function StatusBar() {
 
   const zoomPercent = Math.round(zoom * 100);
 
-  const handleResetZoom = useCallback(() => {
-    setViewport({ x: 0, y: 0, zoom: 1 });
-  }, [setViewport]);
-
   const handleLogout = useCallback(async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
@@ -41,13 +36,7 @@ export default function StatusBar() {
       style={{ height: STATUSBAR_HEIGHT }}
     >
       <div className="flex items-center gap-3">
-        <button
-          onClick={handleResetZoom}
-          className="font-mono text-[#8888aa] hover:text-[#e4e4ef] hover:bg-[#222240] px-1.5 py-0.5 rounded transition-colors"
-          title="Click to reset view (zoom 100%)"
-        >
-          {zoomPercent}%
-        </button>
+        <span className="font-mono text-[#8888aa]">{zoomPercent}%</span>
 
         <div className="w-px h-4 bg-[#2a2a4a]" />
 

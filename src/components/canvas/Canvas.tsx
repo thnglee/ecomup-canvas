@@ -260,31 +260,6 @@ export default function Canvas() {
     return () => window.removeEventListener("canvas-context-menu", handler);
   }, []);
 
-  // Block browser zoom (pinch-to-zoom and Cmd/Ctrl + wheel/+/-/0).
-  // Pinch on the topbar/minimap area would otherwise shrink the chrome
-  // permanently and the user has no way to restore it.
-  useEffect(() => {
-    const blockWheelZoom = (e: WheelEvent) => {
-      if (e.ctrlKey || e.metaKey) e.preventDefault();
-    };
-    const blockKeyZoom = (e: KeyboardEvent) => {
-      if (!(e.ctrlKey || e.metaKey)) return;
-      if (e.key === "+" || e.key === "=" || e.key === "-" || e.key === "_") {
-        e.preventDefault();
-      }
-      if (e.key === "0") {
-        e.preventDefault();
-        useCanvasStore.getState().setViewport({ x: 0, y: 0, zoom: 1 });
-      }
-    };
-    window.addEventListener("wheel", blockWheelZoom, { passive: false });
-    window.addEventListener("keydown", blockKeyZoom);
-    return () => {
-      window.removeEventListener("wheel", blockWheelZoom);
-      window.removeEventListener("keydown", blockKeyZoom);
-    };
-  }, []);
-
   // Render editor for the editing component
   const editingComponent = editingId ? components[editingId] : null;
   const renderEditor = () => {
