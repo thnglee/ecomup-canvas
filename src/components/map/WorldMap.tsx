@@ -398,50 +398,65 @@ export default function WorldMap() {
       </svg>
 
       {/* Auto-visible labels (HTML overlay, positioned per transform) */}
-      {labels.map((l) => {
-        const screenX = l.x * transform.k + transform.tx;
-        const screenY = l.y * transform.k + transform.ty;
-        if (
-          screenX < -60 ||
-          screenY < -30 ||
-          screenX > size.w + 60 ||
-          screenY > size.h + 30
-        )
-          return null;
-        const isHovered = hoverId === l.id;
-        return (
-          <div
-            key={l.id}
-            className="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-1/2"
-            style={{
-              left: screenX,
-              top: screenY,
-              transition: dragging ? "none" : "opacity 150ms",
-              opacity: isHovered ? 1 : 0.95,
-            }}
-          >
+      {(() => {
+        // Scale label sizing with zoom so they remain readable when zoomed in.
+        const labelScale = Math.min(1.6, Math.max(1, transform.k / 4));
+        const timeFs = Math.round(13 * labelScale);
+        const subFs = Math.round(11 * labelScale);
+        const padX = Math.round(8 * labelScale);
+        const padY = Math.round(4 * labelScale);
+        const minW = Math.round(64 * labelScale);
+        return labels.map((l) => {
+          const screenX = l.x * transform.k + transform.tx;
+          const screenY = l.y * transform.k + transform.ty;
+          if (
+            screenX < -80 ||
+            screenY < -40 ||
+            screenX > size.w + 80 ||
+            screenY > size.h + 40
+          )
+            return null;
+          const isHovered = hoverId === l.id;
+          return (
             <div
-              className="rounded-md bg-white/95 border border-black/20 shadow-md px-2 py-1 text-center"
-              style={{ minWidth: 48 }}
+              key={l.id}
+              className="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-1/2"
+              style={{
+                left: screenX,
+                top: screenY,
+                transition: dragging ? "none" : "opacity 150ms",
+                opacity: isHovered ? 1 : 0.95,
+              }}
             >
-              <div className="font-mono font-bold text-[11px] leading-tight text-gray-900">
-                {l.time}
-              </div>
-              <div className="text-[9px] leading-tight text-gray-600 truncate max-w-[120px]">
-                {l.title}
-              </div>
-              {l.score !== null && (
+              <div
+                className="rounded-md bg-white/95 border border-black/20 shadow-md text-center"
+                style={{ minWidth: minW, padding: `${padY}px ${padX}px` }}
+              >
                 <div
-                  className="text-[9px] leading-tight font-bold"
-                  style={{ color: scoreToBgColor(l.score, 1) }}
+                  className="font-mono font-bold leading-tight text-gray-900"
+                  style={{ fontSize: timeFs }}
                 >
-                  {l.score.toFixed(2)}
+                  {l.time}
                 </div>
-              )}
+                <div
+                  className="leading-tight text-gray-700 truncate max-w-[160px]"
+                  style={{ fontSize: subFs }}
+                >
+                  {l.title}
+                </div>
+                {l.score !== null && (
+                  <div
+                    className="leading-tight font-bold"
+                    style={{ fontSize: subFs, color: scoreToBgColor(l.score, 1) }}
+                  >
+                    {l.score.toFixed(2)}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        });
+      })()}
 
       {/* Zoom controls */}
       <div className="absolute top-4 right-4 flex flex-col gap-1 z-30">
