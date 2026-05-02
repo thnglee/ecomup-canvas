@@ -3,6 +3,7 @@
 import { useEffect, useCallback, useState } from "react";
 import { HEADER_HEIGHT, STATUSBAR_HEIGHT } from "@/lib/constants";
 import { useCanvasStore } from "@/stores/canvasStore";
+import { useChromeScale } from "@/hooks/useChromeScale";
 import { forceSave } from "@/hooks/useAutoSave";
 
 interface EditorPanelProps {
@@ -15,6 +16,7 @@ interface EditorPanelProps {
 
 export default function EditorPanel({ title, children, onClose, hasChanges, onSave }: EditorPanelProps) {
   const setEditorOpen = useCanvasStore((s) => s.setEditorOpen);
+  const chromeScale = useChromeScale();
 
   // Suppress auto-save while editor is open
   useEffect(() => {
@@ -37,7 +39,7 @@ export default function EditorPanel({ title, children, onClose, hasChanges, onSa
   return (
     <div
       className="fixed right-0 z-40 w-[400px] bg-[#12121f] border-l border-[#2a2a4a] flex flex-col overflow-hidden"
-      style={{ top: HEADER_HEIGHT, bottom: STATUSBAR_HEIGHT }}
+      style={{ top: HEADER_HEIGHT * chromeScale, bottom: STATUSBAR_HEIGHT * chromeScale }}
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-[#2a2a4a] shrink-0">

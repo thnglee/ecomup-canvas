@@ -2,6 +2,7 @@
 
 import { useRef, useCallback, useState, useMemo } from "react";
 import { useCanvasStore } from "@/stores/canvasStore";
+import { useChromeScale } from "@/hooks/useChromeScale";
 
 const MINIMAP_WIDTH = 140;
 const MINIMAP_HEIGHT = 105;
@@ -26,6 +27,7 @@ export default function Minimap({ containerRef }: MinimapProps) {
   const components = useCanvasStore((s) => s.components);
   const zones = useCanvasStore((s) => s.zones);
   const setMinimapVisible = useCanvasStore((s) => s.setMinimapVisible);
+  const chromeScale = useChromeScale();
 
   const minimapRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -92,8 +94,10 @@ export default function Minimap({ containerRef }: MinimapProps) {
       if (!minimap) return;
 
       const rect = minimap.getBoundingClientRect();
-      const mx = clientX - rect.left;
-      const my = clientY - rect.top;
+      // CSS `zoom` makes rect dimensions visual, but children render at logical
+      // coords — divide click offset back into the logical coord space.
+      const mx = (clientX - rect.left) / chromeScale;
+      const my = (clientY - rect.top) / chromeScale;
 
       // Convert minimap coords to canvas coords
       const canvasX = mx / scale + bounds.minX;
@@ -105,7 +109,7 @@ export default function Minimap({ containerRef }: MinimapProps) {
 
       setViewport({ x: newX, y: newY });
     },
-    [scale, bounds, containerW, containerH, viewport.zoom, setViewport]
+    [scale, bounds, containerW, containerH, viewport.zoom, setViewport, chromeScale]
   );
 
   const handleMouseDown = useCallback(
@@ -130,7 +134,7 @@ export default function Minimap({ containerRef }: MinimapProps) {
   }, []);
 
   return (
-    <div className="absolute bottom-3 right-3 z-40 select-none">
+    <div className="absolute bottom-3 right-3 z-40 select-none" style={{ zoom: chromeScale }}>
       {/* Collapse button */}
       <button
         onClick={() => setMinimapVisible(false)}
