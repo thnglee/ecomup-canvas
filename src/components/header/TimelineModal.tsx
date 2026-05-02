@@ -112,7 +112,7 @@ export default function TimelineModal({ open, onClose }: TimelineModalProps) {
       <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" />
 
       <div
-        className="relative bg-[#0e0e1a] border border-[#2a2a4a] rounded-2xl shadow-2xl w-[95vw] max-w-[1400px] h-[90vh] max-h-[1000px] flex flex-col overflow-hidden"
+        className="relative bg-[#0e0e1a] border border-[#2a2a4a] rounded-2xl shadow-2xl max-w-[920px] w-[95vw] max-h-[85vh] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
