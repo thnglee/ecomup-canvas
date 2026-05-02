@@ -15,7 +15,6 @@ import { useAutoSave } from "@/hooks/useAutoSave";
 import { useDataLoader } from "@/hooks/useDataLoader";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { useViewportCulling } from "@/hooks/useViewportCulling";
-import { useChromeScale } from "@/hooks/useChromeScale";
 import { useCanvasStore } from "@/stores/canvasStore";
 import {
   recordAddComponent,
@@ -86,7 +85,6 @@ export default function Canvas() {
   const addConnector = useCanvasStore((s) => s.addConnector);
   const sidebarCollapsed = useCanvasStore((s) => s.sidebarCollapsed);
   const minimapVisible = useCanvasStore((s) => s.minimapVisible);
-  const chromeScale = useChromeScale();
 
   // Edit state
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -283,7 +281,7 @@ export default function Canvas() {
     }
   };
 
-  const sidebarOffset = sidebarCollapsed ? 0 : SIDEBAR_WIDTH * chromeScale;
+  const sidebarOffset = sidebarCollapsed ? 0 : SIDEBAR_WIDTH;
 
   // Memoize visible components list
   const visibleComponents = useMemo(() => {
@@ -302,10 +300,10 @@ export default function Canvas() {
         ref={containerRef}
         className="fixed overflow-hidden"
         style={{
-          top: HEADER_HEIGHT * chromeScale,
+          top: HEADER_HEIGHT,
           left: sidebarOffset,
           right: 0,
-          bottom: STATUSBAR_HEIGHT * chromeScale,
+          bottom: STATUSBAR_HEIGHT,
           background: "#0a0a0f",
           transition: "left 200ms",
         }}

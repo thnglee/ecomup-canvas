@@ -4,9 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import { useCanvasStore } from "@/stores/canvasStore";
 import { recordUpdateConnector } from "@/stores/historyStore";
 import { canvasToScreen } from "@/lib/canvas/math";
-import { HEADER_HEIGHT, SIDEBAR_WIDTH } from "@/lib/constants";
+import { HEADER_HEIGHT } from "@/lib/constants";
 import { getAnchorPoint } from "@/lib/canvas/connectors";
-import { useChromeScale } from "@/hooks/useChromeScale";
 
 interface ConnectorLabelEditorProps {
   connectorId: string;
@@ -21,7 +20,6 @@ export default function ConnectorLabelEditor({
   const components = useCanvasStore((s) => s.components);
   const viewport = useCanvasStore((s) => s.viewport);
   const updateConnector = useCanvasStore((s) => s.updateConnector);
-  const chromeScale = useChromeScale();
 
   const [label, setLabel] = useState(connector?.label || "");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -43,7 +41,7 @@ export default function ConnectorLabelEditor({
   const midY = (fromPt.y + toPt.y) / 2;
 
   const screen = canvasToScreen(midX, midY, viewport);
-  const sidebarOffset = useCanvasStore.getState().sidebarCollapsed ? 0 : SIDEBAR_WIDTH * chromeScale;
+  const sidebarOffset = useCanvasStore.getState().sidebarCollapsed ? 0 : 260;
 
   const handleSave = () => {
     const newLabel = label.trim() || null;
@@ -59,7 +57,7 @@ export default function ConnectorLabelEditor({
     <div
       className="fixed z-[110]"
       style={{
-        top: screen.y + HEADER_HEIGHT * chromeScale - 16,
+        top: screen.y + HEADER_HEIGHT - 16,
         left: screen.x + sidebarOffset - 80,
       }}
     >

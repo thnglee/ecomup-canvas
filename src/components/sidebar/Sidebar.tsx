@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useCanvasStore } from "@/stores/canvasStore";
 import { HEADER_HEIGHT, STATUSBAR_HEIGHT, SIDEBAR_WIDTH } from "@/lib/constants";
-import { useChromeScale } from "@/hooks/useChromeScale";
 import { useDraggable } from "@dnd-kit/core";
 import type { ComponentType } from "@/types/canvas";
 
@@ -74,7 +73,6 @@ function DraggableCard({ card }: { card: ComponentCard }) {
 export default function Sidebar() {
   const collapsed = useCanvasStore((s) => s.sidebarCollapsed);
   const setCollapsed = useCanvasStore((s) => s.setSidebarCollapsed);
-  const chromeScale = useChromeScale();
   const [search, setSearch] = useState("");
 
   const filtered = COMPONENT_CARDS.filter(
@@ -90,9 +88,8 @@ export default function Sidebar() {
         onClick={() => setCollapsed(!collapsed)}
         className="fixed z-40 flex items-center justify-center w-6 h-8 rounded-r bg-[#12121f] border border-l-0 border-[#2a2a4a] text-[#8888aa] hover:text-[#e4e4ef] hover:bg-[#1a1a2e] transition-colors"
         style={{
-          top: (HEADER_HEIGHT + 12) * chromeScale,
-          left: collapsed ? 0 : SIDEBAR_WIDTH * chromeScale,
-          zoom: chromeScale,
+          top: HEADER_HEIGHT + 12,
+          left: collapsed ? 0 : SIDEBAR_WIDTH,
         }}
       >
         {collapsed ? "›" : "‹"}
@@ -102,11 +99,10 @@ export default function Sidebar() {
       <div
         className="fixed z-30 overflow-hidden bg-[#12121f] border-r border-[#2a2a4a] transition-[width] duration-200"
         style={{
-          top: HEADER_HEIGHT * chromeScale,
+          top: HEADER_HEIGHT,
           left: 0,
-          bottom: STATUSBAR_HEIGHT * chromeScale,
+          bottom: STATUSBAR_HEIGHT,
           width: collapsed ? 0 : SIDEBAR_WIDTH,
-          zoom: chromeScale,
         }}
       >
         <div className="flex flex-col h-full p-3 gap-3" style={{ width: SIDEBAR_WIDTH }}>

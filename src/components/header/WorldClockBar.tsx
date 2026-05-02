@@ -8,7 +8,6 @@ import {
   getCurrentHour,
   scoreToBarBg,
 } from "@/lib/timelineScoring";
-import { useChromeScale } from "@/hooks/useChromeScale";
 import TimelineModal from "./TimelineModal";
 
 interface TempData {
@@ -30,7 +29,6 @@ export default function WorldClockBar() {
   const [now, setNow] = useState<Date | null>(null);
   const [temps, setTemps] = useState<Record<string, TempData>>({});
   const [modalOpen, setModalOpen] = useState(false);
-  const chromeScale = useChromeScale();
 
   // Fetch temperatures from Open-Meteo (free, no API key needed)
   const fetchTemps = useCallback(async () => {
@@ -78,7 +76,7 @@ export default function WorldClockBar() {
     <>
       <header
         className="fixed top-0 left-0 right-0 z-50 flex items-center justify-center gap-4 px-4 bg-[#0d0d18] border-b border-[#2a2a4a] select-none"
-        style={{ height: HEADER_HEIGHT, zoom: chromeScale }}
+        style={{ height: HEADER_HEIGHT }}
       >
         <div className="flex items-center gap-4 flex-1 justify-center">
         {CLOCKS.map((clock) => {

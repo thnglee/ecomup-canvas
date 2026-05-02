@@ -6,11 +6,9 @@ import { useCanvasStore } from "@/stores/canvasStore";
 import { useHistoryStore } from "@/stores/historyStore";
 import { createClient } from "@/lib/supabase/client";
 import { STATUSBAR_HEIGHT } from "@/lib/constants";
-import { useChromeScale } from "@/hooks/useChromeScale";
 
 export default function StatusBar() {
   const zoom = useCanvasStore((s) => s.viewport.zoom);
-  const chromeScale = useChromeScale();
   const snapToGrid = useCanvasStore((s) => s.snapToGrid);
   const setSnapToGrid = useCanvasStore((s) => s.setSnapToGrid);
   const saveStatus = useCanvasStore((s) => s.saveStatus);
@@ -35,7 +33,7 @@ export default function StatusBar() {
   return (
     <footer
       className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-between px-4 bg-[#0d0d18] border-t border-[#2a2a4a] text-xs select-none"
-      style={{ height: STATUSBAR_HEIGHT, zoom: chromeScale }}
+      style={{ height: STATUSBAR_HEIGHT }}
     >
       <div className="flex items-center gap-3">
         <span className="font-mono text-[#8888aa]">{zoomPercent}%</span>
